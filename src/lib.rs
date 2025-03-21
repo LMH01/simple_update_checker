@@ -82,6 +82,8 @@ impl DbConfig {
             Ok(None) => DbConfig::from(db_args),
         };
 
+        println!("Using database file: {}", db_config.db_path);
+
         Ok(db_config)
     }
 }
