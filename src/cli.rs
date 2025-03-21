@@ -9,7 +9,7 @@ use clap::{Parser, Subcommand};
 )]
 pub struct Cli {
     #[command(subcommand)]
-    command: Command,
+    pub command: Command,
 }
 
 #[derive(Subcommand, Clone, Debug)]
@@ -40,14 +40,23 @@ pub enum Command {
 
 #[derive(Parser, Debug, Clone)]
 pub struct AddProgramArgs {
+    #[command(flatten)]
+    pub db_args: DbArgs,
+    
     #[command(subcommand)]
-    provider: UpdateProviderAdd,
+    pub provider: UpdateProviderAdd,
+    
+    #[arg(short, long, help = "Display name for the program")]
+    pub name: String,
 }
 
 #[derive(Parser, Debug, Clone)]
 pub struct RemoveProgramArgs {
-    #[command(subcommand)]
-    provider: UpdateProviderRemove,
+    #[command(flatten)]
+    pub db_args: DbArgs,
+
+    #[arg(short, long, help = "Name of the program that should no longer be checked for updates")]
+    pub name: String
 }
 
 #[derive(Parser, Debug, Clone)]
@@ -59,46 +68,27 @@ pub enum UpdateProviderAdd {
 }
 
 #[derive(Parser, Debug, Clone)]
-pub enum UpdateProviderRemove {
-    #[command{
-        about = "Use Github as provider for update information"
-    }]
-    Github(RemoveGithubProgramArgs),
-}
-
-#[derive(Parser, Debug, Clone)]
 pub struct AddGithubProgramArgs {
-    #[arg(short, long, help = "Display name for the program")]
-    name: String,
     #[arg(
         short,
         long,
         help = "Github repository where the program can be found and where the latest version is taken from"
     )]
-    repository: String,
-}
-
-#[derive(Parser, Debug, Clone)]
-pub struct RemoveGithubProgramArgs {
-    #[arg(
-        short,
-        long,
-        help = "Name of the program that should no longer be checked for updates"
-    )]
-    name: String,
+    pub repository: String,
 }
 
 #[derive(Parser, Debug, Clone)]
 pub struct RunTimedArgs {
     #[command(flatten)]
-    db_args: DbArgs,
+    pub db_args: DbArgs,
 
     #[arg{
         short,
         long,
-        help = "Topic under which the update checks should be published."
+        help = "Topic under which the update checks should be published.",
+        env
     }]
-    ntfy_topic: String,
+    pub ntfy_topic: String,
 }
 
 #[derive(Parser, Debug, Clone)]
@@ -109,5 +99,5 @@ pub struct DbArgs {
         help = "Path where 'programs.db' is located that contains the programs that should be checked for updates and their latest versions.",
         default_value = "programs.db"
     }]
-    db_path: String,
+    pub db_path: String,
 }

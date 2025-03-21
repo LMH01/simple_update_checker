@@ -1,12 +1,34 @@
 use clap::Parser;
-use cli::Cli;
+use simple_update_checker::{
+    cli::{Cli, Command, UpdateProviderAdd},
+    db::ProgramDb,
+    Program, Provider,
+};
 
-mod cli;
-mod db;
+#[tokio::main]
+async fn main() {
+    let cli = Cli::parse();
 
-fn main() {
+    match cli.command {
+        Command::AddProgram(add_program_args) => match add_program_args.provider {
+            UpdateProviderAdd::Github(add_github_program_args) => {
+                let db = ProgramDb::connect(&add_program_args.db_args.db_path)
+                    .await
+                    .unwrap();
+                let program = Program::init(
+                    &add_program_args.name,
+                    Provider::Github(add_github_program_args.repository),
+                )
+                .await
+                .unwrap();
 
-    let _cli = Cli::parse();
-    
-    println!("Hello, world!");
+                db.add_program(&program).await.unwrap();
+                println!(
+                    "Program {} successfully added to database!",
+                    &add_program_args.name
+                );
+            }
+        },
+        _ => (),
+    }
 }

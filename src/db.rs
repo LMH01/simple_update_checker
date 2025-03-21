@@ -1,29 +1,10 @@
 use anyhow::Result;
 use sqlx::{sqlite::SqliteConnectOptions, SqlitePool};
 
+use crate::{Program, Provider};
+
 pub struct ProgramDb {
     pub pool: SqlitePool,
-}
-
-#[derive(PartialEq, Debug)]
-pub struct Program {
-    name: String,
-    latest_version: String,
-    provider: Provider,
-}
-
-#[derive(PartialEq, Debug)]
-pub enum Provider {
-    // String contains the gihub repository. For example: LMH01/simple_update_checker
-    Github(String),
-}
-
-impl Provider {
-    fn identifier(&self) -> String {
-        match self {
-            Self::Github(_) => "github".to_string(),
-        }
-    }
 }
 
 impl ProgramDb {
