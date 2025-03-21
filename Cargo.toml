@@ -9,7 +9,9 @@ edition = "2021"
 anyhow = "1.0.97"
 clap = { version = "4.5.32", features = ["derive", "env"] }
 dotenvy = "0.15.7"
-reqwest = "0.12.15"
+reqwest = { version = "0.12.15", features = ["json"] }
+serde = { version = "1.0.219", features = ["derive"] }
+serde_json = "1.0.140"
 sqlx = { version = "0.8.3", features = ["runtime-tokio-rustls", "sqlite"] }
 tokio = { version = "1.44.1", features = ["full"] }
 tracing = "0.1.41"
