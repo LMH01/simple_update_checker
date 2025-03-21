@@ -47,6 +47,18 @@ impl ProgramDb {
         Ok(())
     }
 
+    pub async fn remove_program(&self, name: &str) -> Result<()> {
+        // Delete from provider-specific table first
+        let sql = r#"DELETE FROM github_programs WHERE name = ?"#;
+        sqlx::query(sql).bind(name).execute(&self.pool).await?;
+
+        // Delete from main programs table
+        let sql = r#"DELETE FROM programs WHERE name = ?"#;
+        sqlx::query(sql).bind(name).execute(&self.pool).await?;
+
+        Ok(())
+    }
+
     /// Retrieve program form database. If name of program is no found, returns 'None'.
     pub async fn get_program(&self, name: &str) -> Result<Option<Program>> {
         // Retrieve the basic program details
@@ -152,6 +164,20 @@ mod tests {
         assert_eq!(Some(program), res);
         let res = program_db.get_program(&program2.name).await.unwrap();
         assert_eq!(None, res);
+    }
+
+    #[sqlx::test]
+    fn test_program_db_remove_program(pool: SqlitePool) {
+        let program_db = program_db(pool);
+        let program = Program {
+            name: "simple_update_checker".to_string(),
+            latest_version: "0.1.0".to_string(),
+            provider: Provider::Github("LMH01/simple_update_checker".to_string()),
+        };
+        program_db.add_program(&program).await.unwrap();
+        program_db.remove_program(&program.name).await.unwrap();
+        let res = program_db.get_program(&program.name).await.unwrap();
+        assert_eq!(res, None);
     }
 
     #[sqlx::test]
