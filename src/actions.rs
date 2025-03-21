@@ -1,7 +1,7 @@
-use anyhow::Result;
+use std::process;
 
 use crate::{
-    cli::{AddGithubProgramArgs, AddProgramArgs},
+    cli::{AddGithubProgramArgs, AddProgramArgs, RemoveProgramArgs},
     db::ProgramDb,
     Program, Provider,
 };
@@ -9,7 +9,7 @@ use crate::{
 pub async fn add_program_github(
     add_program_args: &AddProgramArgs,
     add_github_program_args: &AddGithubProgramArgs,
-) -> Result<()> {
+) {
     let db = ProgramDb::connect(&add_program_args.db_args.db_path)
         .await
         .unwrap();
@@ -25,5 +25,27 @@ pub async fn add_program_github(
         "Program {} successfully added to database!",
         &add_program_args.name
     );
-    Ok(())
+}
+
+pub async fn remove_program(remove_program_args: RemoveProgramArgs) {
+    let db = ProgramDb::connect(&remove_program_args.db_args.db_path)
+        .await
+        .unwrap();
+    if db
+        .get_program(&remove_program_args.name)
+        .await
+        .unwrap()
+        .is_none()
+    {
+        println!(
+            "Program {} did not exist in database.",
+            &remove_program_args.name
+        );
+        process::exit(0);
+    }
+    db.remove_program(&remove_program_args.name).await.unwrap();
+    println!(
+        "Program {} has been removed from the database.",
+        &remove_program_args.name
+    );
 }
