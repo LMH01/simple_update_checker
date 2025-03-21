@@ -33,7 +33,7 @@ pub enum Command {
         about = "Check all programs once for updates.",
         long_about = "Check all programs once for updates. Does not send a push notification when updates are found."
     }]
-    Run(DbArgs),
+    Check(DbArgs),
     #[command{
         about = "Periodically check all programs for updates.",
         long_about = "Periodically check all programs for updates. Sends a push notification when updates are found and the ntfy.sh topic is configured."
