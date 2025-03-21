@@ -105,8 +105,7 @@ pub struct DbArgs {
     #[arg{
         short,
         long,
-        help = "Path where 'programs.db' is located that contains the programs that should be checked for updates and their latest versions.",
-        default_value = "programs.db"
+        help = "Path where 'programs.db' is located that contains the programs that should be checked for updates and their latest versions. If not set and config file not existing will default to 'programs.db'.",
     }]
-    pub db_path: String,
+    pub db_path: Option<String>,
 }
