@@ -51,7 +51,6 @@ impl ProgramDb {
         // Delete from provider-specific table first
         let sql = r#"DELETE FROM github_programs WHERE name = ?"#;
         sqlx::query(sql).bind(name).execute(&self.pool).await?;
-
         // Delete from main programs table
         let sql = r#"DELETE FROM programs WHERE name = ?"#;
         sqlx::query(sql).bind(name).execute(&self.pool).await?;
@@ -131,6 +130,17 @@ impl ProgramDb {
 
         Ok(programs)
     }
+
+    pub async fn update_latest_version(&self, name: &str, latest_version: &str) -> Result<()> {
+        let sql = r#"UPDATE programs SET latest_version = ? WHERE name = ?"#;
+        sqlx::query(sql)
+            .bind(latest_version)
+            .bind(name)
+            .execute(&self.pool)
+            .await?;
+
+        Ok(())
+    }
 }
 
 #[cfg(test)]
@@ -200,5 +210,27 @@ mod tests {
         let mut res = program_db.get_all_programs().await.unwrap();
         res.sort_by(|a, b| a.name.cmp(&b.name));
         assert_eq!(should, res);
+    }
+
+    #[sqlx::test]
+    fn test_program_db_update_latest_version(pool: SqlitePool) {
+        let program_db = program_db(pool);
+        let mut program = Program {
+            name: "simple_update_checker".to_string(),
+            latest_version: "0.1.0".to_string(),
+            provider: Provider::Github("LMH01/simple_update_checker".to_string()),
+        };
+        program_db.add_program(&program).await.unwrap();
+        program_db
+            .update_latest_version(&program.name, "0.2.0")
+            .await
+            .unwrap();
+        let res = program_db
+            .get_program(&program.name)
+            .await
+            .unwrap()
+            .unwrap();
+        program.latest_version = "0.2.0".to_string();
+        assert_eq!(program, res);
     }
 }
