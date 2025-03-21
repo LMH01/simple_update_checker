@@ -8,7 +8,7 @@ pub mod cli;
 pub mod db;
 mod update_check;
 
-#[derive(PartialEq, Debug, Tabled)]
+#[derive(PartialEq, Debug, Tabled, Clone)]
 pub struct Program {
     name: String,
     latest_version: String,
@@ -26,7 +26,7 @@ impl Program {
     }
 }
 
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Debug, Clone)]
 pub enum Provider {
     // String contains the gihub repository. For example: LMH01/simple_update_checker
     Github(String),
