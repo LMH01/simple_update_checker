@@ -1,6 +1,6 @@
 use clap::Parser;
 use simple_update_checker::{
-    actions,
+    actions::{self, add_program},
     cli::{Cli, Command, UpdateProviderAdd},
 };
 
@@ -11,12 +11,18 @@ async fn main() {
     match cli.command {
         Command::AddProgram(add_program_args) => match &add_program_args.provider {
             UpdateProviderAdd::Github(add_github_program_args) => {
-                actions::add_program_github(&add_program_args, add_github_program_args).await
+                add_program::add_program_github(
+                    cli.db_args,
+                    &add_program_args,
+                    add_github_program_args,
+                )
+                .await
             }
         },
         Command::RemoveProgram(remove_program_args) => {
-            actions::remove_program(remove_program_args).await
+            actions::remove_program(cli.db_args, remove_program_args).await
         }
+        Command::ListPrograms => {}
         _ => (),
     }
 }
