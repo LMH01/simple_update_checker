@@ -1,0 +1,10 @@
+/target
+.direnv
+
+/result
+.env
+tracks.db
+output/
+
+docker-compose.yml
+data/
