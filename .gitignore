@@ -8,3 +8,9 @@ output/
 
 docker-compose.yml
 data/
+
+# Added by cargo
+#
+# already existing elements were commented out
+
+#/target
