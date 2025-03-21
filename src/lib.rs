@@ -1,11 +1,14 @@
+use std::fmt::Display;
+
 use anyhow::Result;
+use tabled::Tabled;
 
 pub mod actions;
 pub mod cli;
 pub mod db;
 mod update_check;
 
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Debug, Tabled)]
 pub struct Program {
     name: String,
     latest_version: String,
@@ -34,5 +37,11 @@ impl Provider {
         match self {
             Self::Github(_) => "github".to_string(),
         }
+    }
+}
+
+impl Display for Provider {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.identifier())
     }
 }
