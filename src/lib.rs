@@ -1,5 +1,6 @@
 use anyhow::Result;
 
+pub mod actions;
 pub mod cli;
 pub mod db;
 mod update_check;
