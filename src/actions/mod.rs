@@ -3,15 +3,15 @@ use std::process;
 use tabled::{Table, Tabled};
 
 use crate::{
-    cli::{CheckArgs, DbArgs, RemoveProgramArgs},
+    cli::{CheckArgs, RemoveProgramArgs},
     db::ProgramDb,
-    Provider,
+    DbConfig, Provider,
 };
 
 pub mod add_program;
 
-pub async fn remove_program(db_args: DbArgs, remove_program_args: RemoveProgramArgs) {
-    let db = ProgramDb::connect(&db_args.db_path).await.unwrap();
+pub async fn remove_program(db_config: DbConfig, remove_program_args: RemoveProgramArgs) {
+    let db = ProgramDb::connect(&db_config.db_path).await.unwrap();
     if db
         .get_program(&remove_program_args.name)
         .await
@@ -31,8 +31,8 @@ pub async fn remove_program(db_args: DbArgs, remove_program_args: RemoveProgramA
     );
 }
 
-pub async fn list_programs(db_args: DbArgs) {
-    let db = ProgramDb::connect(&db_args.db_path).await.unwrap();
+pub async fn list_programs(db_config: DbConfig) {
+    let db = ProgramDb::connect(&db_config.db_path).await.unwrap();
     let programs = db.get_all_programs().await.unwrap();
     println!("The following programs are currently stored in the database:\n");
     let table = Table::new(programs);
@@ -48,7 +48,7 @@ struct CheckedProgram {
     provider: Provider,
 }
 
-pub async fn check(db_args: DbArgs, check_args: CheckArgs) {
+pub async fn check(db_args: DbConfig, check_args: CheckArgs) {
     let db = ProgramDb::connect(&db_args.db_path).await.unwrap();
     let programs = db.get_all_programs().await.unwrap();
     println!("Checking {} programs for updates...", programs.len());

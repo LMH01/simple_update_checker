@@ -81,6 +81,22 @@ Note: the latest_version displayed here might not necessarily be the actual newe
 ./simple_update_checker help
 ```
 
+## Config file
+
+If you would like to specify the location for a default `programs.db` file, you can do so by creating a config file called `config.toml` and placing it in `~/.config/simple_update_checker/`.
+
+Example file:
+
+```
+db_path = "/home/louis/.local/simple_update_checker/programs.db"
+```
+
+Note that the folder for the database file needs to exist already, if it does not exist, the program will fail to start. The database file is created automatically.
+
+If the cli option `--db-path` is set, it overrides the setting from the config file.
+
+If the config file does not exist and `--db-path` is not set, `programs.db` will be created in your current directory.
+
 ## Future plans
 
 - [ ] Add a timed mode where the program periodically checks for updates and then sends a notification using ntfy.sh when updates are available (command already exists, but has no functionality)
