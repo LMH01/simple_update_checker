@@ -13,6 +13,20 @@ pub async fn add_program_github(
     let db = ProgramDb::connect(&add_program_args.db_args.db_path)
         .await
         .unwrap();
+
+    if db
+        .get_program(&add_program_args.name)
+        .await
+        .unwrap()
+        .is_some()
+    {
+        println!(
+            "Program named {} already exists in database.",
+            &add_program_args.name
+        );
+        process::exit(0);
+    }
+
     let program = Program::init(
         &add_program_args.name,
         Provider::Github(add_github_program_args.repository.to_string()),
