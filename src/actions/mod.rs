@@ -1,6 +1,6 @@
 use std::process;
 
-use tabled::Table;
+use tabled::{Table, Tabled};
 
 use crate::{
     cli::{CheckArgs, DbArgs, RemoveProgramArgs},
@@ -40,6 +40,7 @@ pub async fn list_programs(db_args: DbArgs) {
     println!("Note: the latest_version displayed here might not necessarily be the actual newest version. Use command 'check' to check all programs for updates.");
 }
 
+#[derive(Tabled, Clone)]
 struct CheckedProgram {
     name: String,
     last_version: String,
@@ -60,7 +61,11 @@ pub async fn check(db_args: DbArgs, check_args: CheckArgs) {
             provider: p.provider,
         })
         .collect();
+    let mut programs_with_updates = Vec::new();
     checked_programs.sort_by(|a, b| a.name.cmp(&b.name));
+
+    let mut updates_available = false;
+
     for program in &mut checked_programs {
         let latest_version = match program.provider.check_for_latest_version().await {
             Ok(latest_version) => latest_version,
@@ -80,8 +85,16 @@ pub async fn check(db_args: DbArgs, check_args: CheckArgs) {
                 "{}: update found {} -> {}",
                 program.name, program.last_version, program.latest_version
             );
+            programs_with_updates.push(program.clone());
+            updates_available = true;
         } else {
             println!("{}: no update found", program.name);
         }
+    }
+
+    if updates_available {
+        println!("\nSummary of programs that have updates available:\n");
+        let table = Table::new(programs_with_updates);
+        println!("{}", table);
     }
 }
