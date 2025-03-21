@@ -33,7 +33,7 @@ pub enum Command {
         about = "Check all programs once for updates.",
         long_about = "Check all programs once for updates. Does not send a push notification when updates are found."
     }]
-    Check(DbArgs),
+    Check(CheckArgs),
     #[command{
         about = "Periodically check all programs for updates.",
         long_about = "Periodically check all programs for updates. Sends a push notification when updates are found and the ntfy.sh topic is configured."
@@ -74,6 +74,18 @@ pub struct AddGithubProgramArgs {
         help = "Github repository where the program can be found and where the latest version is taken from"
     )]
     pub repository: String,
+}
+
+#[derive(Parser, Debug, Clone)]
+pub struct CheckArgs {
+
+    #[arg{
+        short,
+        long,
+        help = "When set, the newest found version will not be written to database.",
+        env
+    }]
+    pub no_update_db: bool,
 }
 
 #[derive(Parser, Debug, Clone)]

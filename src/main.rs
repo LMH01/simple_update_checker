@@ -23,6 +23,7 @@ async fn main() {
             actions::remove_program(cli.db_args, remove_program_args).await
         }
         Command::ListPrograms => actions::list_programs(cli.db_args).await,
+        Command::Check(check_args) => actions::check(cli.db_args, check_args).await,
         _ => (),
     }
 }
