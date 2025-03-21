@@ -4,10 +4,7 @@
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs?ref=nixos-unstable";
     flake-parts.url = "github:hercules-ci/flake-parts";
-    crane = {
-      url = "github:ipetkov/crane";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
+    crane.url = "github:ipetkov/crane";
     fenix = {
       url = "github:nix-community/fenix";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -34,7 +31,7 @@
           , ...
           }:
           let
-            craneLib = inputs.crane.lib.${system};
+            craneLib = inputs.crane.mkLib pkgs;
             src = craneLib.cleanCargoSource (craneLib.path ./.);
             cargoArtifacts = craneLib.buildDepsOnly { inherit src; };
             simple_update_checker = craneLib.buildPackage {
