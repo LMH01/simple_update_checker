@@ -102,6 +102,42 @@ impl ProgramDb {
             provider,
         }))
     }
+
+    /// Retrieve all programs from the database.
+    pub async fn get_all_programs(&self) -> Result<Vec<Program>> {
+        // Retrieve all programs
+        let sql = r#"SELECT name, latest_version, provider FROM programs"#;
+        let rows = sqlx::query_as::<_, (String, String, String)>(sql)
+            .fetch_all(&self.pool)
+            .await?;
+
+        let mut programs = Vec::new();
+        for (name, latest_version, provider) in rows {
+            let provider = match provider.as_str() {
+                "github" => {
+                    let sql = r#"SELECT repository FROM github_programs WHERE name = ?"#;
+                    if let Some((repository,)) = sqlx::query_as::<_, (String,)>(sql)
+                        .bind(&name)
+                        .fetch_optional(&self.pool)
+                        .await?
+                    {
+                        Provider::Github(repository)
+                    } else {
+                        anyhow::bail!("Github repository entry missing for program: {}", name);
+                    }
+                }
+                _ => anyhow::bail!("Unknown provider type: {}", provider),
+            };
+
+            programs.push(Program {
+                name,
+                latest_version,
+                provider,
+            });
+        }
+
+        Ok(programs)
+    }
 }
 
 #[cfg(test)]
@@ -117,7 +153,7 @@ mod tests {
     }
 
     #[sqlx::test]
-    fn test_songdb(pool: SqlitePool) {
+    fn test_program_db(pool: SqlitePool) {
         let program_db = program_db(pool);
         let program = Program {
             name: "simple_update_checker".to_string(),
@@ -135,5 +171,27 @@ mod tests {
         assert_eq!(Some(program), res);
         let res = program_db.get_program(&program2.name).await.unwrap();
         assert_eq!(None, res);
+    }
+
+    #[sqlx::test]
+    fn test_program_db_get_all_programs(pool: SqlitePool) {
+        let program_db = program_db(pool);
+        let program = Program {
+            name: "simple_update_checker".to_string(),
+            latest_version: "0.1.0".to_string(),
+            provider: Provider::Github("LMH01/simple_update_checker".to_string()),
+        };
+        let program2 = Program {
+            name: "test_program".to_string(),
+            latest_version: "0.1.0".to_string(),
+            provider: Provider::Github("LMH01/test_program".to_string()),
+        };
+        program_db.add_program(&program).await.unwrap();
+        program_db.add_program(&program2).await.unwrap();
+        let mut should = vec![program, program2];
+        should.sort_by(|a, b| a.name.cmp(&b.name));
+        let mut res = program_db.get_all_programs().await.unwrap();
+        res.sort_by(|a, b| a.name.cmp(&b.name));
+        assert_eq!(should, res);
     }
 }
