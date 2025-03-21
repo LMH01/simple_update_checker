@@ -8,6 +8,6 @@ CREATE TABLE programs (
 
 CREATE TABLE github_programs (
     'name' VARCHAR(256) NOT NULL,
-    repository VARCHAR(256) NOT NULL,
+    repository VARCHAR(256) NOT NULL UNIQUE,
     FOREIGN KEY ('name') REFERENCES programs('name')
 );
