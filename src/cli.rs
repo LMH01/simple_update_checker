@@ -10,6 +10,9 @@ use clap::{Parser, Subcommand};
 pub struct Cli {
     #[command(subcommand)]
     pub command: Command,
+
+    #[command(flatten)]
+    pub db_args: DbArgs,
 }
 
 #[derive(Subcommand, Clone, Debug)]
@@ -40,8 +43,6 @@ pub enum Command {
 
 #[derive(Parser, Debug, Clone)]
 pub struct AddProgramArgs {
-    #[command(flatten)]
-    pub db_args: DbArgs,
     
     #[command(subcommand)]
     pub provider: UpdateProviderAdd,
@@ -52,8 +53,6 @@ pub struct AddProgramArgs {
 
 #[derive(Parser, Debug, Clone)]
 pub struct RemoveProgramArgs {
-    #[command(flatten)]
-    pub db_args: DbArgs,
 
     #[arg(short, long, help = "Name of the program that should no longer be checked for updates")]
     pub name: String
@@ -79,8 +78,6 @@ pub struct AddGithubProgramArgs {
 
 #[derive(Parser, Debug, Clone)]
 pub struct RunTimedArgs {
-    #[command(flatten)]
-    pub db_args: DbArgs,
 
     #[arg{
         short,
