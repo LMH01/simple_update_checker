@@ -14,6 +14,9 @@ mod update_check;
 #[derive(PartialEq, Debug, Tabled, Clone)]
 pub struct Program {
     name: String,
+    /// Version that is currently in use
+    current_version: String,
+    /// Newest version that is available
     latest_version: String,
     provider: Provider,
 }
@@ -23,6 +26,7 @@ impl Program {
         let latest_version = provider.check_for_latest_version().await?;
         Ok(Self {
             name: name.to_string(),
+            current_version: latest_version.clone(),
             latest_version: latest_version,
             provider,
         })
