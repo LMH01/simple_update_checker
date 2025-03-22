@@ -40,6 +40,7 @@ pub async fn list_programs(db_config: DbConfig) {
     println!(
         "Note: the latest_version displayed here might not necessarily be the actual newest version. Use command 'check' to check all programs for updates."
     );
+    // TODO Maybe I should also check for updates here, since I added the distinction between current and latest version? If yes, remove above note.
 }
 
 #[derive(Tabled, Clone)]
@@ -50,6 +51,7 @@ struct CheckedProgram {
     provider: Provider,
 }
 
+// TODO Update this function to use db instead of this CheckedProgram struct
 pub async fn check(db_args: DbConfig, check_args: CheckArgs) {
     let db = ProgramDb::connect(&db_args.db_path).await.unwrap();
     let programs = db.get_all_programs().await.unwrap();
@@ -77,8 +79,11 @@ pub async fn check(db_args: DbConfig, check_args: CheckArgs) {
             }
         };
         if latest_version != program.last_version {
-            if !check_args.no_update_db {
-                db.update_latest_version(&program.name, &latest_version)
+            db.update_latest_version(&program.name, &latest_version)
+                .await
+                .unwrap();
+            if check_args.set_current_version {
+                db.update_current_version(&program.name, &latest_version)
                     .await
                     .unwrap();
             }
