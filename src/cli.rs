@@ -83,10 +83,10 @@ pub struct CheckArgs {
     #[arg{
         short,
         long,
-        help = "When set, the newest found version will not be written to database.",
+        help = "When set, the newest found version will also be set as current version.",
         env
     }]
-    pub no_update_db: bool,
+    pub set_current_version: bool,
 }
 
 #[derive(Parser, Debug, Clone)]

@@ -32,6 +32,9 @@ When programs are added to the database, the currently latest version is stored 
 
 ### Come back in the future and check for updates:
 
+// TODO Update this to reflect changes with current_version
+// I think that I can also remove the struct CheckedProgram as the information is now directly stored in database
+
 ```
 ./simple_update_checker check
 ```
