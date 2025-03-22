@@ -1,9 +1,9 @@
 use std::process;
 
 use crate::{
+    DbConfig, Program, Provider,
     cli::{AddGithubProgramArgs, AddProgramArgs},
     db::ProgramDb,
-    DbConfig, Program, Provider,
 };
 
 pub async fn add_program_github(

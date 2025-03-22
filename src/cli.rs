@@ -43,19 +43,21 @@ pub enum Command {
 
 #[derive(Parser, Debug, Clone)]
 pub struct AddProgramArgs {
-    
     #[command(subcommand)]
     pub provider: UpdateProviderAdd,
-    
+
     #[arg(short, long, help = "Display name for the program")]
     pub name: String,
 }
 
 #[derive(Parser, Debug, Clone)]
 pub struct RemoveProgramArgs {
-
-    #[arg(short, long, help = "Name of the program that should no longer be checked for updates")]
-    pub name: String
+    #[arg(
+        short,
+        long,
+        help = "Name of the program that should no longer be checked for updates"
+    )]
+    pub name: String,
 }
 
 #[derive(Parser, Debug, Clone)]
@@ -78,7 +80,6 @@ pub struct AddGithubProgramArgs {
 
 #[derive(Parser, Debug, Clone)]
 pub struct CheckArgs {
-
     #[arg{
         short,
         long,
@@ -90,7 +91,6 @@ pub struct CheckArgs {
 
 #[derive(Parser, Debug, Clone)]
 pub struct RunTimedArgs {
-
     #[arg{
         short,
         long,

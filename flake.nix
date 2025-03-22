@@ -46,6 +46,7 @@
                 cargo
                 gcc
                 rustfmt
+		rustc
                 clippy
                 pkg-config
                 openssl

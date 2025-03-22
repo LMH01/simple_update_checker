@@ -1,5 +1,5 @@
 use anyhow::Result;
-use sqlx::{sqlite::SqliteConnectOptions, SqlitePool};
+use sqlx::{SqlitePool, sqlite::SqliteConnectOptions};
 
 use crate::{Program, Provider};
 
@@ -75,14 +75,15 @@ impl ProgramDb {
         let provider = match provider.as_str() {
             "github" => {
                 let sql = r#"SELECT repository FROM github_programs WHERE name = ?"#;
-                if let Some((repository,)) = sqlx::query_as::<_, (String,)>(sql)
+                match sqlx::query_as::<_, (String,)>(sql)
                     .bind(&name)
                     .fetch_optional(&self.pool)
                     .await?
                 {
-                    Provider::Github(repository)
-                } else {
-                    anyhow::bail!("Github repository entry missing for program: {}", name);
+                    Some((repository,)) => Provider::Github(repository),
+                    _ => {
+                        anyhow::bail!("Github repository entry missing for program: {}", name);
+                    }
                 }
             }
             _ => anyhow::bail!("Unknown provider type: {}", provider),
@@ -108,14 +109,15 @@ impl ProgramDb {
             let provider = match provider.as_str() {
                 "github" => {
                     let sql = r#"SELECT repository FROM github_programs WHERE name = ?"#;
-                    if let Some((repository,)) = sqlx::query_as::<_, (String,)>(sql)
+                    match sqlx::query_as::<_, (String,)>(sql)
                         .bind(&name)
                         .fetch_optional(&self.pool)
                         .await?
                     {
-                        Provider::Github(repository)
-                    } else {
-                        anyhow::bail!("Github repository entry missing for program: {}", name);
+                        Some((repository,)) => Provider::Github(repository),
+                        _ => {
+                            anyhow::bail!("Github repository entry missing for program: {}", name);
+                        }
                     }
                 }
                 _ => anyhow::bail!("Unknown provider type: {}", provider),

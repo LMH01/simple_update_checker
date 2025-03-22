@@ -62,7 +62,9 @@ impl DbConfig {
         // try to load config at ~/.config/simple_update_checker/config.toml
         let db_config = match Config::try_parse() {
             Err(e) => {
-                println!("Warning: unable to parse config at ~/.config/simple_update_checker/config.toml : {e}");
+                println!(
+                    "Warning: unable to parse config at ~/.config/simple_update_checker/config.toml : {e}"
+                );
                 DbConfig::from(db_args)
             }
             Ok(Some(config)) => {
@@ -70,8 +72,9 @@ impl DbConfig {
                 // check if db_path is set using cli
                 if let Some(db_path) = &db_args.db_path {
                     println!(
-                    "Not using db_path setting found in config file ({}) as --db-path is set ({})",
-                    config.db_path, db_path);
+                        "Not using db_path setting found in config file ({}) as --db-path is set ({})",
+                        config.db_path, db_path
+                    );
                     DbConfig::from(db_args)
                 } else {
                     DbConfig {

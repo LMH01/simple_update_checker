@@ -3,9 +3,9 @@ use std::process;
 use tabled::{Table, Tabled};
 
 use crate::{
+    DbConfig, Provider,
     cli::{CheckArgs, RemoveProgramArgs},
     db::ProgramDb,
-    DbConfig, Provider,
 };
 
 pub mod add_program;
@@ -37,7 +37,9 @@ pub async fn list_programs(db_config: DbConfig) {
     println!("The following programs are currently stored in the database:\n");
     let table = Table::new(programs);
     println!("{}\n", table);
-    println!("Note: the latest_version displayed here might not necessarily be the actual newest version. Use command 'check' to check all programs for updates.");
+    println!(
+        "Note: the latest_version displayed here might not necessarily be the actual newest version. Use command 'check' to check all programs for updates."
+    );
 }
 
 #[derive(Tabled, Clone)]

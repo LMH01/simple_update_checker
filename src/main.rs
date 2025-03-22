@@ -1,8 +1,8 @@
 use clap::Parser;
 use simple_update_checker::{
+    DbConfig,
     actions::{self, add_program},
     cli::{Cli, Command, UpdateProviderAdd},
-    DbConfig,
 };
 
 #[tokio::main]
