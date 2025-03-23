@@ -6,15 +6,19 @@ use crate::{Program, Provider, cli::CheckArgs, db::ProgramDb};
 
 impl Provider {
     // Checks what the latest version for the program using this provider is.
-    pub async fn check_for_latest_version(&self) -> Result<String> {
+    pub async fn check_for_latest_version(
+        &self,
+        github_access_token: &Option<String>,
+    ) -> Result<String> {
         match self {
             Self::Github(repo) => {
                 let url = format!("https://api.github.com/repos/{}/releases/latest", repo);
-                let response = Client::new()
-                    .get(&url)
-                    .header("User-Agent", "reqwest")
-                    .send()
-                    .await?;
+                let mut request = Client::new().get(&url).header("User-Agent", "reqwest");
+
+                if let Some(token) = github_access_token {
+                    request = request.header("Authorization", format!("Bearer {token}"))
+                };
+                let response = request.send().await?;
 
                 if response.status().is_success() {
                     let json: Value = response.json().await?;
@@ -37,6 +41,7 @@ impl Provider {
 pub async fn check_for_updates(
     db: &ProgramDb,
     check_args: Option<CheckArgs>,
+    github_access_token: &Option<String>,
     print_messages: bool,
 ) -> Result<Vec<Program>> {
     let mut programs = db.get_all_programs().await.unwrap();
@@ -45,7 +50,10 @@ pub async fn check_for_updates(
     let mut programs_with_available_updates = Vec::new();
 
     for mut program in programs {
-        let latest_version = program.provider.check_for_latest_version().await?;
+        let latest_version = program
+            .provider
+            .check_for_latest_version(&github_access_token)
+            .await?;
         if latest_version != program.latest_version {
             db.update_latest_version(&program.name, &latest_version)
                 .await

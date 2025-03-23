@@ -13,6 +13,14 @@ pub struct Cli {
 
     #[command(flatten)]
     pub db_args: DbArgs,
+
+    #[arg(
+        short,
+        long,
+        help = "Set to increase rate limit of github api.\nSee https://github.com/settings/personal-access-tokens",
+        env
+    )]
+    pub github_access_token: Option<String>,
 }
 
 #[derive(Subcommand, Clone, Debug)]

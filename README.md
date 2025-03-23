@@ -120,6 +120,10 @@ If the cli option `--db-path` is set, it overrides the setting from the config f
 
 If the config file does not exist and `--db-path` is not set, `programs.db` will be created in your current directory.
 
+### Github API rate limiting
+
+If you are not authenticated against the Github API the rate limit is 60 requests per hour (which should be enough). To increase the rate limit to 5000 requests per hour create a personal access token [here](https://github.com/settings/personal-access-tokens) and provide it to the program with `--github-access-token <GITHUB_ACCESS_TOKEN>`.
+
 ## Compile from source
 
 To compile the program from source the rust toolchain is needed (install via [rustup](https://rustup.rs/)). Once installed you can run the program by typing `cargo run`. To submit arguments you can use `--`, for example `cargo run -- -h` will print help.
