@@ -27,6 +27,7 @@ async fn main() {
         }
         Command::ListPrograms => actions::list_programs(db_config).await,
         Command::Check(check_args) => actions::check(db_config, check_args).await,
+        Command::Update(update_args) => actions::update(db_config, update_args).await,
         Command::RunTimed(_run_timed_args) => todo!("This command is not yet implemented."),
     }
 }

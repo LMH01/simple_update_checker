@@ -57,6 +57,14 @@ Summary of programs that have updates available:
 +-------------------------+--------------+----------------+----------+
 ```
 
+### Update current_version when program has been updated
+
+```
+./simple_update_checker update -n <NAME>
+```
+
+This updates the `current_version` to the `latest_version` that is stored in the database. Does not check if a newer version is available.
+
 ### View programs that are added to database
 
 ```
