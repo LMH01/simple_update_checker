@@ -50,6 +50,8 @@
 
         simple_update_checker = craneLib.buildPackage (commonArgs // {
           cargoArtifacts = craneLib.buildDepsOnly commonArgs;
+          
+          doCheck = false;
 
           # Additional environment variables or build phases/hooks can be set
           # here *without* rebuilding all dependency crates
