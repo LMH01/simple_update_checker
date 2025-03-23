@@ -9,9 +9,17 @@ use crate::{DbConfig, Program, cli::RunTimedArgs, db::ProgramDb, notification, u
 pub async fn run(db_config: DbConfig, run_timed_args: RunTimedArgs) {
     // check connection with database before starting thread
     tracing::info!("Checking database connection");
-    if let Err(e) = ProgramDb::connect(&db_config.db_path).await {
-        tracing::error!("Error while connecting to database: {e}");
-        process::exit(1);
+    match ProgramDb::connect(&db_config.db_path).await {
+        Err(e) => {
+            tracing::error!("Error while connecting to database: {e}");
+            process::exit(1);
+        }
+        Ok(db) => {
+            tracing::info!("Database connection successful. Currently watched programs:");
+            let programs = db.get_all_programs().await.unwrap();
+            let table = Table::new(programs);
+            tracing::info!("\n{table}");
+        }
     }
 
     spawn(db_config, run_timed_args);
