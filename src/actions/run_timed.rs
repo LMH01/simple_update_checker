@@ -4,7 +4,10 @@ use anyhow::Result;
 use tabled::Table;
 use tokio::signal::unix::{SignalKind, signal};
 
-use crate::{DbConfig, Program, cli::RunTimedArgs, db::ProgramDb, notification, update_check};
+use crate::{
+    DbConfig, Program, UpdateCheckType, cli::RunTimedArgs, db::ProgramDb, notification,
+    update_check,
+};
 
 pub async fn run(
     db_config: DbConfig,
@@ -84,8 +87,14 @@ async fn check_for_updates(
     programs.sort_by(|a, b| a.name.cmp(&b.name));
     tracing::info!("Checking {} programs for updates...", programs.len());
 
-    let programs_with_available_updates =
-        update_check::check_for_updates(&db, None, github_access_token, false).await?;
+    let programs_with_available_updates = update_check::check_for_updates(
+        &db,
+        None,
+        github_access_token,
+        false,
+        UpdateCheckType::Timed,
+    )
+    .await?;
 
     let available_updates = programs_with_available_updates.len();
 

@@ -2,7 +2,7 @@ use anyhow::Result;
 use reqwest::Client;
 use serde_json::Value;
 
-use crate::{Program, Provider, cli::CheckArgs, db::ProgramDb};
+use crate::{Program, Provider, UpdateCheck, UpdateCheckType, cli::CheckArgs, db::ProgramDb};
 
 impl Provider {
     // Checks what the latest version for the program using this provider is.
@@ -43,6 +43,7 @@ pub async fn check_for_updates(
     check_args: Option<CheckArgs>,
     github_access_token: &Option<String>,
     print_messages: bool,
+    update_check_type: UpdateCheckType,
 ) -> Result<Vec<Program>> {
     let mut programs = db.get_all_programs().await.unwrap();
     programs.sort_by(|a, b| a.name.cmp(&b.name));
@@ -85,6 +86,10 @@ pub async fn check_for_updates(
             println!("{}: no update found", program.name);
         }
     }
+
+    // add entry to database that update check was performed
+    db.insert_update_check(&UpdateCheck::from_now(update_check_type))
+        .await?;
 
     Ok(programs_with_available_updates)
 }
