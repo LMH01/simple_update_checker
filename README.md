@@ -138,8 +138,6 @@ nix shell github:lmh01/simple_update_checker
 
 to start a shell in which `simple_update_checker` is installed.
 
-Warning: the build is currently broken, flake needs fixing (pkg-config is not found).
-
 ## Docker
 
 To setup the program using a docker container follow these steps:
