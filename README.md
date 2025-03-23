@@ -42,19 +42,22 @@ When programs are added to the database, the currently latest version is stored 
 Output might look like this:
 
 ```
+Using config file found at /home/louis/.config/simple_update_checker/config.toml
+Not using db_path setting found in config file (/home/louis/.local/simple_update_checker/programs.db) as --db-path is set (programs.db)
+Using database file: programs.db
 Checking 2 programs for updates...
 alpha_tui: update found v1.7.0 -> v1.8.0
 simple_graph_algorithms: update found v0.1.0 -> v1.0.0
 
 Summary of programs that have updates available:
 
-+-------------------------+--------------+----------------+----------+
-| name                    | last_version | latest_version | provider |
-+-------------------------+--------------+----------------+----------+
-| alpha_tui               | v1.7.0       | v1.8.0         | github   |
-+-------------------------+--------------+----------------+----------+
-| simple_graph_algorithms | v0.1.0       | v1.0.0         | github   |
-+-------------------------+--------------+----------------+----------+
++-------------------------+-----------------+----------------+----------+
+| name                    | current_version | latest_version | provider |
++-------------------------+-----------------+----------------+----------+
+| alpha_tui               | v1.7.0          | v1.8.0         | github   |
++-------------------------+-----------------+----------------+----------+
+| simple_graph_algorithms | v0.1.0          | v1.0.0         | github   |
++-------------------------+-----------------+----------------+----------+
 ```
 
 ### Update current_version when program has been updated
