@@ -3,7 +3,7 @@ use std::process;
 use tabled::Table;
 
 use crate::{
-    DbConfig,
+    DbConfig, UpdateCheckType,
     cli::{CheckArgs, RemoveProgramArgs, UpdateArgs},
     db::ProgramDb,
     update_check,
@@ -50,10 +50,15 @@ pub async fn check(db_args: DbConfig, check_args: CheckArgs, github_access_token
     programs.sort_by(|a, b| a.name.cmp(&b.name));
     println!("Checking {} programs for updates...", programs.len());
 
-    let programs_with_available_updates =
-        update_check::check_for_updates(&db, Some(check_args), &github_access_token, true)
-            .await
-            .unwrap();
+    let programs_with_available_updates = update_check::check_for_updates(
+        &db,
+        Some(check_args),
+        &github_access_token,
+        true,
+        UpdateCheckType::Manual,
+    )
+    .await
+    .unwrap();
 
     if !programs_with_available_updates.is_empty() {
         println!("\nSummary of programs that have updates available:\n");

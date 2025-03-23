@@ -3,7 +3,7 @@ use std::{fmt::Display, str::FromStr};
 use anyhow::Result;
 use cli::DbArgs;
 use config::Config;
-use sqlx::types::chrono::NaiveDateTime;
+use sqlx::types::chrono::{NaiveDateTime, Utc};
 use tabled::Tabled;
 
 pub mod actions;
@@ -130,6 +130,16 @@ impl From<DbArgs> for DbConfig {
 pub struct UpdateCheck {
     pub time: NaiveDateTime,
     pub r#type: UpdateCheckType,
+}
+
+impl UpdateCheck {
+    /// Creates a new UpdateCheck entry from the current time and date.
+    pub fn from_now(r#type: UpdateCheckType) -> Self {
+        Self {
+            time: Utc::now().naive_utc(),
+            r#type,
+        }
+    }
 }
 
 #[derive(Debug, PartialEq)]
