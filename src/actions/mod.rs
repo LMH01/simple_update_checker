@@ -6,6 +6,7 @@ use crate::{
     DbConfig,
     cli::{CheckArgs, RemoveProgramArgs, UpdateArgs},
     db::ProgramDb,
+    update_check,
 };
 
 pub mod add_program;
@@ -48,41 +49,10 @@ pub async fn check(db_args: DbConfig, check_args: CheckArgs) {
     programs.sort_by(|a, b| a.name.cmp(&b.name));
     println!("Checking {} programs for updates...", programs.len());
 
-    let mut programs_with_available_updates = Vec::new();
-
-    for mut program in programs {
-        let latest_version = match program.provider.check_for_latest_version().await {
-            Ok(latest_version) => latest_version,
-            Err(e) => {
-                println!("Error while checking for latest version: {e:?}");
-                process::exit(1);
-            }
-        };
-        if latest_version != program.latest_version {
-            db.update_latest_version(&program.name, &latest_version)
-                .await
-                .unwrap();
-            if check_args.set_current_version {
-                db.update_current_version(&program.name, &latest_version)
-                    .await
-                    .unwrap();
-            }
-            program.latest_version = latest_version;
-            println!(
-                "{}: update found {} -> {}",
-                program.name, program.current_version, program.latest_version
-            );
-            programs_with_available_updates.push(program);
-        } else if latest_version != program.current_version {
-            println!(
-                "{}: update found {} -> {}",
-                program.name, program.current_version, program.latest_version
-            );
-            programs_with_available_updates.push(program);
-        } else {
-            println!("{}: no update found", program.name);
-        }
-    }
+    let programs_with_available_updates =
+        update_check::check_for_updates(&db, Some(check_args), true)
+            .await
+            .unwrap();
 
     if !programs_with_available_updates.is_empty() {
         println!("\nSummary of programs that have updates available:\n");
