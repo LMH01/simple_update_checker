@@ -72,7 +72,7 @@ impl DbConfig {
                 DbConfig::from(db_args)
             }
             Ok(Some(config)) => {
-                println!("Using config file found at ~/.config/simple_update_checker/config.toml");
+                println!("Using config file found at {}", config.path);
                 // check if db_path is set using cli
                 if let Some(db_path) = &db_args.db_path {
                     println!(
