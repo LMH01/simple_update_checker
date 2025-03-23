@@ -27,7 +27,7 @@ impl Program {
         Ok(Self {
             name: name.to_string(),
             current_version: latest_version.clone(),
-            latest_version: latest_version,
+            latest_version,
             provider,
         })
     }
