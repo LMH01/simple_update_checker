@@ -11,3 +11,6 @@ services:
       DB_PATH: "data/programs.db"
       # how often to check for updates (time in seconds)
       CHECK_INTERVAL: "3600"
+      # comment out and fill in personal access token when you need to make more than 60 api requests per hour
+      # see https://github.com/settings/personal-access-tokens
+      #GITHUB_ACCESS_TOKEN: <GITHUB_ACCESS_TOKEN>
