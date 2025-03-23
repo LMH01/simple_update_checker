@@ -69,8 +69,8 @@ fn spawn(db_config: DbConfig, run_timed_args: RunTimedArgs) {
 }
 
 async fn check_for_updates(db_config: &DbConfig, run_timed_args: &RunTimedArgs) -> Result<()> {
-    let db = ProgramDb::connect(&db_config.db_path).await.unwrap();
-    let mut programs = db.get_all_programs().await.unwrap();
+    let db = ProgramDb::connect(&db_config.db_path).await?;
+    let mut programs = db.get_all_programs().await?;
     programs.sort_by(|a, b| a.name.cmp(&b.name));
     tracing::info!("Checking {} programs for updates...", programs.len());
 
