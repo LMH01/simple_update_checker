@@ -32,9 +32,9 @@ impl ProgramDb {
         let _ = sqlx::query(sql)
             .bind(&program.name)
             .bind(&program.current_version)
-            .bind(&program.current_version_last_updated)
+            .bind(program.current_version_last_updated)
             .bind(&program.latest_version)
-            .bind(&program.latest_version_last_updated)
+            .bind(program.latest_version_last_updated)
             .bind(program.provider.identifier())
             .fetch_all(&self.pool)
             .await?;

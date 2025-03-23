@@ -54,7 +54,7 @@ pub async fn check_for_updates(
     for mut program in programs {
         let latest_version = program
             .provider
-            .check_for_latest_version(&github_access_token)
+            .check_for_latest_version(github_access_token)
             .await?;
         if latest_version != program.latest_version {
             db.update_latest_version(&program.name, &latest_version, Utc::now().naive_utc())
