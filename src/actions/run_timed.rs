@@ -75,8 +75,7 @@ async fn check_for_updates(db_config: &DbConfig, run_timed_args: &RunTimedArgs) 
     tracing::info!("Checking {} programs for updates...", programs.len());
 
     let programs_with_available_updates = update_check::check_for_updates(&db, None, false)
-        .await
-        .unwrap();
+        .await?;
 
     let available_updates = programs_with_available_updates.len();
 
