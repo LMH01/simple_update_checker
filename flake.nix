@@ -57,9 +57,9 @@
         });
       in
       {
-        checks = {
-          simple_update_checker = simple_update_checker;
-        };
+        #checks = {
+        #  simple_update_checker = simple_update_checker;
+        #};
 
         packages.default = simple_update_checker;
 
