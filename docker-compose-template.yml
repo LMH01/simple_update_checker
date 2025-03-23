@@ -1,0 +1,13 @@
+services:
+  rust-app:
+    build: .
+    container_name: simple_update_checker
+    volumes:
+      - ./data:/simple_update_checker/data # This mounts the ./data folder on host to /usr/src/app/data inside the container
+    environment:
+      # enter your id here
+      NTFY_TOPIC: "<NTFY_TOPIC>"
+      # path where the programs.db file is located
+      DB_PATH: "data/programs.db"
+      # how often to check for updates (time in seconds)
+      CHECK_INTERVAL: "3600"
