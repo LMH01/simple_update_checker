@@ -73,10 +73,8 @@ pub async fn check_for_updates(
                 );
             }
             programs_with_available_updates.push(program);
-        } else {
-            if print_messages {
-                println!("{}: no update found", program.name);
-            }
+        } else if print_messages {
+            println!("{}: no update found", program.name);
         }
     }
 
