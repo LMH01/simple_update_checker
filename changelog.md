@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.2.1
+
+- fixed date column showing milliseconds in 'list-programs' command
+
 ## v1.2.0
 
 - Programs listed by 'list-programs' are now sorted alphabetically

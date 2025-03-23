@@ -21,13 +21,13 @@ pub struct Program {
     #[tabled(rename = "Current version (CV)")]
     current_version: String,
     /// Last time 'current_version' was updated
-    #[tabled(rename = "CV last updated")]
+    #[tabled(rename = "CV last updated", display("format_datetime"))]
     current_version_last_updated: NaiveDateTime,
     /// Newest version that is available
     #[tabled(rename = "Latest version (LV)")]
     latest_version: String,
     /// Last time 'current_version' was updated
-    #[tabled(rename = "LV last updated")]
+    #[tabled(rename = "LV last updated", display("format_datetime"))]
     latest_version_last_updated: NaiveDateTime,
     #[tabled(rename = "Provider")]
     provider: Provider,
@@ -51,6 +51,10 @@ impl Program {
             provider,
         })
     }
+}
+
+fn format_datetime(value: &NaiveDateTime) -> String {
+    value.format("%Y-%m-%d %H:%M:%S").to_string()
 }
 
 /// Returns an identifier for this type.
