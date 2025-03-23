@@ -4,7 +4,7 @@ use tabled::{Table, Tabled};
 
 use crate::{
     DbConfig, Provider,
-    cli::{CheckArgs, RemoveProgramArgs},
+    cli::{CheckArgs, RemoveProgramArgs, UpdateArgs},
     db::ProgramDb,
 };
 
@@ -104,4 +104,33 @@ pub async fn check(db_args: DbConfig, check_args: CheckArgs) {
         let table = Table::new(programs_with_updates);
         println!("{}", table);
     }
+}
+
+pub async fn update(db_config: DbConfig, update_args: UpdateArgs) {
+    let db = ProgramDb::connect(&db_config.db_path).await.unwrap();
+    if db
+        .get_program(&update_args.name)
+        .await
+        .unwrap()
+        .is_none()
+    {
+        println!(
+            "Unable to update current_version: Program {} does not exist in database.",
+            &update_args.name
+        );
+        process::exit(0);
+    }
+    let program = db.get_program(&update_args.name).await.unwrap().unwrap();
+    if program.current_version.eq(&program.latest_version) {
+        println!("current_version of {} is already equal to latest_version", &program.name);
+        process::exit(0);
+    }
+    db.update_current_version(&update_args.name, &program.latest_version)
+        .await
+        .unwrap();
+    println!(
+        "current_version of {} has been updated to latest version ({})",
+        &program.name,
+        &program.latest_version
+    );
 }
