@@ -44,14 +44,14 @@ pub async fn list_programs(db_config: DbConfig) {
     );
 }
 
-pub async fn check(db_args: DbConfig, check_args: CheckArgs) {
+pub async fn check(db_args: DbConfig, check_args: CheckArgs, github_access_token: Option<String>) {
     let db = ProgramDb::connect(&db_args.db_path).await.unwrap();
     let mut programs = db.get_all_programs().await.unwrap();
     programs.sort_by(|a, b| a.name.cmp(&b.name));
     println!("Checking {} programs for updates...", programs.len());
 
     let programs_with_available_updates =
-        update_check::check_for_updates(&db, Some(check_args), true)
+        update_check::check_for_updates(&db, Some(check_args), &github_access_token, true)
             .await
             .unwrap();
 

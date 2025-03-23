@@ -6,7 +6,11 @@ use tokio::signal::unix::{SignalKind, signal};
 
 use crate::{DbConfig, Program, cli::RunTimedArgs, db::ProgramDb, notification, update_check};
 
-pub async fn run(db_config: DbConfig, run_timed_args: RunTimedArgs) {
+pub async fn run(
+    db_config: DbConfig,
+    run_timed_args: RunTimedArgs,
+    github_access_token: Option<String>,
+) {
     // check connection with database before starting thread
     tracing::info!("Checking database connection");
     match ProgramDb::connect(&db_config.db_path).await {
@@ -22,7 +26,7 @@ pub async fn run(db_config: DbConfig, run_timed_args: RunTimedArgs) {
         }
     }
 
-    spawn(db_config, run_timed_args);
+    spawn(db_config, run_timed_args, github_access_token);
 
     // setup signal handlers
     let mut sigterm =
@@ -40,7 +44,7 @@ pub async fn run(db_config: DbConfig, run_timed_args: RunTimedArgs) {
 }
 
 /// Spawn the tread that periodically checks for updates
-fn spawn(db_config: DbConfig, run_timed_args: RunTimedArgs) {
+fn spawn(db_config: DbConfig, run_timed_args: RunTimedArgs, github_access_token: Option<String>) {
     tokio::spawn(async move {
         tracing::info!(
             "Starting update checker loop, check interval: {} seconds",
@@ -48,7 +52,9 @@ fn spawn(db_config: DbConfig, run_timed_args: RunTimedArgs) {
         );
         loop {
             tracing::info!("Starting update check");
-            if let Err(e) = check_for_updates(&db_config, &run_timed_args).await {
+            if let Err(e) =
+                check_for_updates(&db_config, &run_timed_args, &github_access_token).await
+            {
                 tracing::error!("Error while checking for updates: {e}");
                 if let Err(e) = notification::send_error_notifictaion(
                     &run_timed_args.ntfy_topic,
@@ -68,14 +74,18 @@ fn spawn(db_config: DbConfig, run_timed_args: RunTimedArgs) {
     });
 }
 
-async fn check_for_updates(db_config: &DbConfig, run_timed_args: &RunTimedArgs) -> Result<()> {
+async fn check_for_updates(
+    db_config: &DbConfig,
+    run_timed_args: &RunTimedArgs,
+    github_access_token: &Option<String>,
+) -> Result<()> {
     let db = ProgramDb::connect(&db_config.db_path).await?;
     let mut programs = db.get_all_programs().await?;
     programs.sort_by(|a, b| a.name.cmp(&b.name));
     tracing::info!("Checking {} programs for updates...", programs.len());
 
-    let programs_with_available_updates = update_check::check_for_updates(&db, None, false)
-        .await?;
+    let programs_with_available_updates =
+        update_check::check_for_updates(&db, None, github_access_token, false).await?;
 
     let available_updates = programs_with_available_updates.len();
 

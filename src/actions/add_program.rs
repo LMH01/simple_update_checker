@@ -10,6 +10,7 @@ pub async fn add_program_github(
     db_config: DbConfig,
     add_program_args: &AddProgramArgs,
     add_github_program_args: &AddGithubProgramArgs,
+    github_access_token: Option<String>,
 ) {
     let db = ProgramDb::connect(&db_config.db_path).await.unwrap();
 
@@ -29,6 +30,7 @@ pub async fn add_program_github(
     let program = Program::init(
         &add_program_args.name,
         Provider::Github(add_github_program_args.repository.to_string()),
+        github_access_token,
     )
     .await
     .unwrap();

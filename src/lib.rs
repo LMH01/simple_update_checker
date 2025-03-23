@@ -23,8 +23,14 @@ pub struct Program {
 }
 
 impl Program {
-    pub async fn init(name: &str, provider: Provider) -> Result<Self> {
-        let latest_version = provider.check_for_latest_version().await?;
+    pub async fn init(
+        name: &str,
+        provider: Provider,
+        github_access_token: Option<String>,
+    ) -> Result<Self> {
+        let latest_version = provider
+            .check_for_latest_version(&github_access_token)
+            .await?;
         Ok(Self {
             name: name.to_string(),
             current_version: latest_version.clone(),

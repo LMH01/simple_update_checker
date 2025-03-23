@@ -27,6 +27,7 @@ async fn main() {
                     db_config,
                     &add_program_args,
                     add_github_program_args,
+                    cli.github_access_token,
                 )
                 .await
             }
@@ -35,9 +36,13 @@ async fn main() {
             actions::remove_program(db_config, remove_program_args).await
         }
         Command::ListPrograms => actions::list_programs(db_config).await,
-        Command::Check(check_args) => actions::check(db_config, check_args).await,
+        Command::Check(check_args) => {
+            actions::check(db_config, check_args, cli.github_access_token).await
+        }
         Command::Update(update_args) => actions::update(db_config, update_args).await,
-        Command::RunTimed(run_timed_args) => run_timed::run(db_config, run_timed_args).await,
+        Command::RunTimed(run_timed_args) => {
+            run_timed::run(db_config, run_timed_args, cli.github_access_token).await
+        }
     }
 }
 
