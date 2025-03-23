@@ -110,6 +110,14 @@ pub struct RunTimedArgs {
         env
     }]
     pub ntfy_topic: String,
+    #[arg(
+        env,
+        short,
+        long,
+        help = "Interval in which the update check should be run. Time in seconds.",
+        default_value = "3600"
+    )]
+    pub check_interval: u32,
 }
 
 #[derive(Parser, Debug, Clone)]
@@ -118,6 +126,7 @@ pub struct DbArgs {
         short,
         long,
         help = "Path where 'programs.db' is located that contains the programs that should be checked for updates and their latest versions. If not set and config file not existing will default to 'programs.db'.",
+        env
     }]
     pub db_path: Option<String>,
 }
