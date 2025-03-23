@@ -3,7 +3,7 @@ use std::process;
 use tabled::Table;
 
 use crate::{
-    DbConfig, UpdateCheckType,
+    DbConfig, Identifier, UpdateCheckType,
     cli::{CheckArgs, RemoveProgramArgs, UpdateArgs},
     db::ProgramDb,
     update_check,
@@ -39,9 +39,17 @@ pub async fn list_programs(db_config: DbConfig) {
     println!("The following programs are currently stored in the database:\n");
     let table = Table::new(programs);
     println!("{}\n", table);
-    println!(
-        "Note: the latest_version displayed here might not necessarily be the actual newest version. Use command 'check' to check all programs for updates."
-    );
+
+    if let Some(last_update_check) = db.get_latest_update_check().await.unwrap() {
+        println!(
+            "Last update check performed on: {} ({} update check)",
+            last_update_check.time.format("%Y-%m-%d %H:%M:%S"),
+            last_update_check.r#type.identifier()
+        );
+    } else {
+        println!("Last update check performed on: never")
+    }
+    println!("\nUse command 'check' to check all programs for updates.")
 }
 
 pub async fn check(db_args: DbConfig, check_args: CheckArgs, github_access_token: Option<String>) {
