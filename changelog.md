@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.2.0
+
+- Programs listed by 'list-programs' are now sorted alphabetically
+
 ## v1.1.0
 
 - Last time an update check was performed is now displayed when command 'list-programs' is run

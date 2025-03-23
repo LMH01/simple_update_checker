@@ -36,7 +36,8 @@ pub async fn remove_program(db_config: DbConfig, remove_program_args: RemoveProg
 
 pub async fn list_programs(db_config: DbConfig) {
     let db = ProgramDb::connect(&db_config.db_path).await.unwrap();
-    let programs = db.get_all_programs().await.unwrap();
+    let mut programs = db.get_all_programs().await.unwrap();
+    programs.sort_by(|a, b| a.name.cmp(&b.name));
     println!("The following programs are currently stored in the database:\n");
     let table = Table::new(programs);
     println!("{}\n", table);
