@@ -31,7 +31,7 @@ impl ProgramDb {
             .bind(&program.name)
             .bind(&program.current_version)
             .bind(&program.latest_version)
-            .bind(&program.provider.identifier())
+            .bind(program.provider.identifier())
             .fetch_all(&self.pool)
             .await?;
         // insert into provider specific table
