@@ -89,6 +89,16 @@ The following programs are currently stored in the database:
 Note: the latest_version displayed here might not necessarily be the actual newest version. Use command 'check' to check all programs for updates.
 ```
 
+### Timed mode
+
+```
+./simple_update_checker run-timed -n <NTFY_TOPIC> -c <CHECK_INTERVAL>
+```
+
+In timed mode the update check will be performed every `<CHECK_INTERVAL>` seconds. When an update is found a notification is send to [ntfy.sh](http://ntfy.sh) under the topic `<NTFY_TOPIC>`.
+
+This is the function that is run when using the docker container.
+
 ### View help
 
 ```
@@ -110,10 +120,6 @@ Note that the folder for the database file needs to exist already, if it does no
 If the cli option `--db-path` is set, it overrides the setting from the config file.
 
 If the config file does not exist and `--db-path` is not set, `programs.db` will be created in your current directory.
-
-## Future plans
-
-- [ ] Add a timed mode where the program periodically checks for updates and then sends a notification using ntfy.sh when updates are available (command already exists, but has no functionality)
 
 ## Compile from source
 

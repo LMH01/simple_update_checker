@@ -10,6 +10,7 @@ use crate::{
 };
 
 pub mod add_program;
+pub mod run_timed;
 
 pub async fn remove_program(db_config: DbConfig, remove_program_args: RemoveProgramArgs) {
     let db = ProgramDb::connect(&db_config.db_path).await.unwrap();
