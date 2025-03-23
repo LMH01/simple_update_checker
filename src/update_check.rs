@@ -2,7 +2,7 @@ use anyhow::Result;
 use reqwest::Client;
 use serde_json::Value;
 
-use crate::Provider;
+use crate::{Program, Provider, cli::CheckArgs, db::ProgramDb};
 
 impl Provider {
     // Checks what the latest version for the program using this provider is.
@@ -30,4 +30,53 @@ impl Provider {
             }
         }
     }
+}
+
+/// Checks all programs in the database for updates. Updates `latest_version` when update was found.
+/// Returns a vector containing all programs for which updates are available.
+pub async fn check_for_updates(
+    db: &ProgramDb,
+    check_args: Option<CheckArgs>,
+    print_messages: bool,
+) -> Result<Vec<Program>> {
+    let mut programs = db.get_all_programs().await.unwrap();
+    programs.sort_by(|a, b| a.name.cmp(&b.name));
+
+    let mut programs_with_available_updates = Vec::new();
+
+    for mut program in programs {
+        let latest_version = program.provider.check_for_latest_version().await?;
+        if latest_version != program.latest_version {
+            db.update_latest_version(&program.name, &latest_version)
+                .await
+                .unwrap();
+            if let Some(check_args) = &check_args {
+                if check_args.set_current_version {
+                    db.update_current_version(&program.name, &latest_version)
+                        .await
+                        .unwrap();
+                }
+            }
+            program.latest_version = latest_version;
+            if print_messages {
+                println!(
+                    "{}: update found {} -> {}",
+                    program.name, program.current_version, program.latest_version
+                );
+            }
+            programs_with_available_updates.push(program);
+        } else if latest_version != program.current_version {
+            if print_messages {
+                println!(
+                    "{}: update found {} -> {}",
+                    program.name, program.current_version, program.latest_version
+                );
+            }
+            programs_with_available_updates.push(program);
+        } else {
+            println!("{}: no update found", program.name);
+        }
+    }
+
+    Ok(programs_with_available_updates)
 }
