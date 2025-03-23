@@ -141,8 +141,6 @@ Warning: the build is currently broken, flake needs fixing (pkg-config is not fo
 
 ## Docker
 
-// TODO Find out way on how to modify program so that the programs.db file in data/ is not owned by root so that it can be modified from outside the docker container
-
 To setup the program using a docker container follow these steps:
 
 1. Clone the repository
