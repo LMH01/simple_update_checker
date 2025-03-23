@@ -32,7 +32,11 @@ impl Config {
         }
 
         let mut config = toml::from_str::<Config>(&fs::read_to_string(&config_file)?)?;
-        config.path = config_file.as_path().to_str().unwrap_or("File path could not be determined").to_string();
+        config.path = config_file
+            .as_path()
+            .to_str()
+            .unwrap_or("File path could not be determined")
+            .to_string();
 
         Ok(Some(config))
     }
