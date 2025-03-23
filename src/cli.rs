@@ -115,7 +115,8 @@ pub struct RunTimedArgs {
         short,
         long,
         help = "Interval in which the update check should be run. Time in seconds.",
-        default_value = "3600"
+        default_value = "3600",
+        env
     )]
     pub check_interval: u32,
 }
