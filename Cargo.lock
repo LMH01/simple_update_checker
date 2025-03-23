@@ -1762,7 +1762,7 @@ dependencies = [
 
 [[package]]
 name = "simple_update_checker"
-version = "1.2.0"
+version = "1.2.1"
 dependencies = [
  "anyhow",
  "clap",
