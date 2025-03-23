@@ -1,9 +1,9 @@
 use std::process;
 
-use tabled::{Table, Tabled};
+use tabled::Table;
 
 use crate::{
-    DbConfig, Provider,
+    DbConfig,
     cli::{CheckArgs, RemoveProgramArgs, UpdateArgs},
     db::ProgramDb,
 };
@@ -40,37 +40,17 @@ pub async fn list_programs(db_config: DbConfig) {
     println!(
         "Note: the latest_version displayed here might not necessarily be the actual newest version. Use command 'check' to check all programs for updates."
     );
-    // TODO Maybe I should also check for updates here, since I added the distinction between current and latest version? If yes, remove above note.
 }
 
-#[derive(Tabled, Clone)]
-struct CheckedProgram {
-    name: String,
-    last_version: String,
-    latest_version: String,
-    provider: Provider,
-}
-
-// TODO Update this function to use db instead of this CheckedProgram struct
 pub async fn check(db_args: DbConfig, check_args: CheckArgs) {
     let db = ProgramDb::connect(&db_args.db_path).await.unwrap();
-    let programs = db.get_all_programs().await.unwrap();
+    let mut programs = db.get_all_programs().await.unwrap();
+    programs.sort_by(|a, b| a.name.cmp(&b.name));
     println!("Checking {} programs for updates...", programs.len());
-    let mut checked_programs: Vec<CheckedProgram> = programs
-        .into_iter()
-        .map(|p| CheckedProgram {
-            name: p.name,
-            last_version: p.latest_version.clone(),
-            latest_version: p.latest_version,
-            provider: p.provider,
-        })
-        .collect();
-    let mut programs_with_updates = Vec::new();
-    checked_programs.sort_by(|a, b| a.name.cmp(&b.name));
 
-    let mut updates_available = false;
+    let mut programs_with_available_updates = Vec::new();
 
-    for program in &mut checked_programs {
+    for mut program in programs {
         let latest_version = match program.provider.check_for_latest_version().await {
             Ok(latest_version) => latest_version,
             Err(e) => {
@@ -78,7 +58,7 @@ pub async fn check(db_args: DbConfig, check_args: CheckArgs) {
                 process::exit(1);
             }
         };
-        if latest_version != program.last_version {
+        if latest_version != program.latest_version {
             db.update_latest_version(&program.name, &latest_version)
                 .await
                 .unwrap();
@@ -90,30 +70,30 @@ pub async fn check(db_args: DbConfig, check_args: CheckArgs) {
             program.latest_version = latest_version;
             println!(
                 "{}: update found {} -> {}",
-                program.name, program.last_version, program.latest_version
+                program.name, program.current_version, program.latest_version
             );
-            programs_with_updates.push(program.clone());
-            updates_available = true;
+            programs_with_available_updates.push(program);
+        } else if latest_version != program.current_version {
+            println!(
+                "{}: update found {} -> {}",
+                program.name, program.current_version, program.latest_version
+            );
+            programs_with_available_updates.push(program);
         } else {
             println!("{}: no update found", program.name);
         }
     }
 
-    if updates_available {
+    if !programs_with_available_updates.is_empty() {
         println!("\nSummary of programs that have updates available:\n");
-        let table = Table::new(programs_with_updates);
+        let table = Table::new(programs_with_available_updates);
         println!("{}", table);
     }
 }
 
 pub async fn update(db_config: DbConfig, update_args: UpdateArgs) {
     let db = ProgramDb::connect(&db_config.db_path).await.unwrap();
-    if db
-        .get_program(&update_args.name)
-        .await
-        .unwrap()
-        .is_none()
-    {
+    if db.get_program(&update_args.name).await.unwrap().is_none() {
         println!(
             "Unable to update current_version: Program {} does not exist in database.",
             &update_args.name
@@ -122,7 +102,10 @@ pub async fn update(db_config: DbConfig, update_args: UpdateArgs) {
     }
     let program = db.get_program(&update_args.name).await.unwrap().unwrap();
     if program.current_version.eq(&program.latest_version) {
-        println!("current_version of {} is already equal to latest_version", &program.name);
+        println!(
+            "current_version of {} is already equal to latest_version",
+            &program.name
+        );
         process::exit(0);
     }
     db.update_current_version(&update_args.name, &program.latest_version)
@@ -130,7 +113,6 @@ pub async fn update(db_config: DbConfig, update_args: UpdateArgs) {
         .unwrap();
     println!(
         "current_version of {} has been updated to latest version ({})",
-        &program.name,
-        &program.latest_version
+        &program.name, &program.latest_version
     );
 }
