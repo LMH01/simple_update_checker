@@ -1,7 +1,9 @@
-use anyhow::Result;
-use sqlx::{SqlitePool, sqlite::SqliteConnectOptions};
+use std::str::FromStr;
 
-use crate::{Program, Provider};
+use anyhow::Result;
+use sqlx::{SqlitePool, sqlite::SqliteConnectOptions, types::chrono::NaiveDateTime};
+
+use crate::{Identifier, Program, Provider, UpdateCheck, UpdateCheckType};
 
 pub struct ProgramDb {
     pub pool: SqlitePool,
@@ -157,13 +159,48 @@ impl ProgramDb {
 
         Ok(())
     }
+
+    pub async fn insert_update_check(&self, update_check: &UpdateCheck) -> Result<()> {
+        let sql = r#"INSERT INTO update_checks (time, type) VALUES (?, ?)"#;
+        sqlx::query(sql)
+            .bind(update_check.time)
+            .bind(update_check.r#type.identifier())
+            .execute(&self.pool)
+            .await?;
+
+        Ok(())
+    }
+
+    pub async fn get_latest_update_check(&self) -> Result<Option<UpdateCheck>> {
+        let sql = r#"SELECT time, type FROM update_checks ORDER BY time DESC LIMIT 1"#;
+        if let Some(row) = sqlx::query_as::<_, (NaiveDateTime, String)>(sql)
+            .fetch_optional(&self.pool)
+            .await?
+        {
+            return Ok(Some(UpdateCheck {
+                time: row.0,
+                r#type: UpdateCheckType::from_str(&row.1)
+                    .expect("database should contain only valid entries"),
+            }));
+        }
+        Ok(None)
+    }
 }
 
 #[cfg(test)]
 mod tests {
-    use sqlx::SqlitePool;
+    use std::str::FromStr;
 
-    use crate::db::{Program, Provider};
+    use sqlx::{
+        SqlitePool,
+        types::chrono::{NaiveDate, NaiveDateTime, NaiveTime},
+    };
+
+    use crate::{
+        UpdateCheck, UpdateCheckType,
+        db::{Program, Provider},
+        update_check,
+    };
 
     use super::ProgramDb;
 
@@ -276,5 +313,38 @@ mod tests {
             .unwrap();
         program.current_version = "0.2.0".to_string();
         assert_eq!(program, res);
+    }
+
+    #[sqlx::test]
+    fn test_program_db_update_check(pool: SqlitePool) {
+        let program_db = program_db(pool);
+        let update_check = UpdateCheck {
+            time: NaiveDateTime::new(
+                NaiveDate::parse_from_str("10.03.2025", "%d.%m.%Y").unwrap(),
+                NaiveTime::parse_from_str("10:50:00", "%H:%M:%S").unwrap(),
+            ),
+            r#type: UpdateCheckType::Manual,
+        };
+        let update_check1 = UpdateCheck {
+            time: NaiveDateTime::new(
+                NaiveDate::parse_from_str("12.03.2025", "%d.%m.%Y").unwrap(),
+                NaiveTime::parse_from_str("13:45:00", "%H:%M:%S").unwrap(),
+            ),
+            r#type: UpdateCheckType::Manual,
+        };
+        program_db.insert_update_check(&update_check).await.unwrap();
+        program_db
+            .insert_update_check(&update_check1)
+            .await
+            .unwrap();
+        let res = program_db.get_latest_update_check().await.unwrap();
+        assert_eq!(Some(update_check1), res);
+    }
+
+    #[sqlx::test]
+    fn test_program_db_update_check_not_existing(pool: SqlitePool) {
+        let program_db = program_db(pool);
+        let res = program_db.get_latest_update_check().await.unwrap();
+        assert!(res.is_none())
     }
 }

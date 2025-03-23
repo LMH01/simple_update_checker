@@ -1,8 +1,9 @@
-use std::fmt::Display;
+use std::{fmt::Display, str::FromStr};
 
 use anyhow::Result;
 use cli::DbArgs;
 use config::Config;
+use sqlx::types::chrono::NaiveDateTime;
 use tabled::Tabled;
 
 pub mod actions;
@@ -40,13 +41,18 @@ impl Program {
     }
 }
 
+/// Returns an identifier for this type.
+pub trait Identifier {
+    fn identifier(&self) -> String;
+}
+
 #[derive(PartialEq, Debug, Clone)]
 pub enum Provider {
     // String contains the gihub repository. For example: LMH01/simple_update_checker
     Github(String),
 }
 
-impl Provider {
+impl Identifier for Provider {
     fn identifier(&self) -> String {
         match self {
             Self::Github(_) => "github".to_string(),
@@ -116,5 +122,41 @@ impl From<DbArgs> for DbConfig {
             return DbConfig { db_path: path };
         }
         DbConfig::default()
+    }
+}
+
+/// Represents a single update check.
+#[derive(Debug, PartialEq)]
+pub struct UpdateCheck {
+    pub time: NaiveDateTime,
+    pub r#type: UpdateCheckType,
+}
+
+#[derive(Debug, PartialEq)]
+pub enum UpdateCheckType {
+    Manual,
+    Timed,
+}
+
+impl Identifier for UpdateCheckType {
+    fn identifier(&self) -> String {
+        match self {
+            UpdateCheckType::Manual => "manual".to_string(),
+            UpdateCheckType::Timed => "timed".to_string(),
+        }
+    }
+}
+
+impl FromStr for UpdateCheckType {
+    type Err = anyhow::Error;
+
+    fn from_str(s: &str) -> std::result::Result<Self, Self::Err> {
+        match s {
+            "manual" => Ok(UpdateCheckType::Manual),
+            "timed" => Ok(UpdateCheckType::Timed),
+            _ => Err(anyhow::anyhow!(
+                "UpdateCheckType could not be parsed from {s}"
+            )),
+        }
     }
 }
