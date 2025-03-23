@@ -15,11 +15,21 @@ mod update_check;
 
 #[derive(PartialEq, Debug, Tabled, Clone)]
 pub struct Program {
+    #[tabled(rename = "Name")]
     name: String,
     /// Version that is currently in use
+    #[tabled(rename = "Current version (CV)")]
     current_version: String,
+    /// Last time 'current_version' was updated
+    #[tabled(rename = "CV last updated")]
+    current_version_last_updated: NaiveDateTime,
     /// Newest version that is available
+    #[tabled(rename = "Latest version (LV)")]
     latest_version: String,
+    /// Last time 'current_version' was updated
+    #[tabled(rename = "LV last updated")]
+    latest_version_last_updated: NaiveDateTime,
+    #[tabled(rename = "Provider")]
     provider: Provider,
 }
 
@@ -35,7 +45,9 @@ impl Program {
         Ok(Self {
             name: name.to_string(),
             current_version: latest_version.clone(),
+            current_version_last_updated: Utc::now().naive_utc(),
             latest_version,
+            latest_version_last_updated: Utc::now().naive_utc(),
             provider,
         })
     }

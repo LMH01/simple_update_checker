@@ -1,5 +1,6 @@
 use std::process;
 
+use sqlx::types::chrono::Utc;
 use tabled::Table;
 
 use crate::{
@@ -42,7 +43,7 @@ pub async fn list_programs(db_config: DbConfig) {
 
     if let Some(last_update_check) = db.get_latest_update_check().await.unwrap() {
         println!(
-            "Last update check performed on: {} ({} update check)",
+            "Last update check performed on: (UTC) {} ({} update check)",
             last_update_check.time.format("%Y-%m-%d %H:%M:%S"),
             last_update_check.r#type.identifier()
         );
@@ -92,9 +93,13 @@ pub async fn update(db_config: DbConfig, update_args: UpdateArgs) {
         );
         process::exit(0);
     }
-    db.update_current_version(&update_args.name, &program.latest_version)
-        .await
-        .unwrap();
+    db.update_current_version(
+        &update_args.name,
+        &program.latest_version,
+        Utc::now().naive_utc(),
+    )
+    .await
+    .unwrap();
     println!(
         "current_version of {} has been updated to latest version ({})",
         &program.name, &program.latest_version
