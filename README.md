@@ -99,6 +99,8 @@ In timed mode the update check will be performed every `<CHECK_INTERVAL>` second
 
 This is the function that is run when using the docker container.
 
+See [docker section](#docker) on how to setup the program using a docker container.
+
 ### View help
 
 ```
@@ -136,3 +138,17 @@ nix shell github:lmh01/simple_update_checker
 to start a shell in which `simple_update_checker` is installed.
 
 Warning: the build is currently broken, flake needs fixing (pkg-config is not found).
+
+## Docker
+
+// TODO Find out way on how to modify program so that the programs.db file in data/ is not owned by root so that it can be modified from outside the docker container
+
+To setup the program using a docker container follow these steps:
+
+1. Clone the repository
+2. Copy `docker-compose-template.yml` to `docker-compose.yml` and change the value for `<NTFY_TOPIC>`. See [ntfy.sh](https://ntfy.sh) on how to setup the app.
+3. Create a new folder named data
+4. Initialize the database and add programs that should be watched for updates using the following command: `cargo run --release -- -d data/programs.db add-program -n <NAME> github -r <GITHUB_REPOSITORY>`
+5. Start the docker container using `docker compose up -d`
+
+If you would like to add more programs stop the docker container with `docker compose down` and use the above command to add more programs. You can also use all other commands of the tool with this db.
