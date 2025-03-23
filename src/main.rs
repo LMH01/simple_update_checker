@@ -2,7 +2,9 @@ use std::env;
 
 use clap::Parser;
 use simple_update_checker::{
-    actions::{self, add_program, run_timed}, cli::{Cli, Command, UpdateProviderAdd}, DbConfig
+    DbConfig,
+    actions::{self, add_program, run_timed},
+    cli::{Cli, Command, UpdateProviderAdd},
 };
 use tracing::Level;
 
