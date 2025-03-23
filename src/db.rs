@@ -28,11 +28,13 @@ impl ProgramDb {
     /// Add a program to the database.
     pub async fn add_program(&self, program: &Program) -> Result<()> {
         // insert into programs table
-        let sql = r#"INSERT INTO programs ('name','current_version', 'latest_version' , 'provider') VALUES (?, ?, ?, ?)"#;
+        let sql = r#"INSERT INTO programs ('name','current_version', 'current_version_last_updated', 'latest_version', 'latest_version_last_updated' , 'provider') VALUES (?, ?, ?, ?, ?, ?)"#;
         let _ = sqlx::query(sql)
             .bind(&program.name)
             .bind(&program.current_version)
+            .bind(&program.current_version_last_updated)
             .bind(&program.latest_version)
+            .bind(&program.latest_version_last_updated)
             .bind(program.provider.identifier())
             .fetch_all(&self.pool)
             .await?;
@@ -64,13 +66,24 @@ impl ProgramDb {
     /// Retrieve program form database. If name of program is no found, returns 'None'.
     pub async fn get_program(&self, name: &str) -> Result<Option<Program>> {
         // Retrieve the basic program details
-        let sql = r#"SELECT name, current_version, latest_version, provider FROM programs WHERE name = ?"#;
-        let row = sqlx::query_as::<_, (String, String, String, String)>(sql)
+        let sql = r#"SELECT name, current_version, current_version_last_updated, latest_version, latest_version_last_updated, provider FROM programs WHERE name = ?"#;
+        let row =
+            sqlx::query_as::<_, (String, String, NaiveDateTime, String, NaiveDateTime, String)>(
+                sql,
+            )
             .bind(name)
             .fetch_optional(&self.pool)
             .await?;
 
-        let Some((name, current_version, latest_version, provider)) = row else {
+        let Some((
+            name,
+            current_version,
+            current_version_last_updated,
+            latest_version,
+            latest_version_last_updated,
+            provider,
+        )) = row
+        else {
             return Ok(None);
         };
 
@@ -95,7 +108,9 @@ impl ProgramDb {
         Ok(Some(Program {
             name,
             current_version,
+            current_version_last_updated,
             latest_version,
+            latest_version_last_updated,
             provider,
         }))
     }
@@ -103,13 +118,24 @@ impl ProgramDb {
     /// Retrieve all programs from the database.
     pub async fn get_all_programs(&self) -> Result<Vec<Program>> {
         // Retrieve all programs
-        let sql = r#"SELECT name, current_version, latest_version, provider FROM programs"#;
-        let rows = sqlx::query_as::<_, (String, String, String, String)>(sql)
-            .fetch_all(&self.pool)
-            .await?;
+        let sql = r#"SELECT name, current_version, current_version_last_updated, latest_version, latest_version_last_updated, provider FROM programs"#;
+        let rows = sqlx::query_as::<
+            _,
+            (String, String, NaiveDateTime, String, NaiveDateTime, String),
+        >(sql)
+        .fetch_all(&self.pool)
+        .await?;
 
         let mut programs = Vec::new();
-        for (name, current_version, latest_version, provider) in rows {
+        for (
+            name,
+            current_version,
+            current_version_last_updated,
+            latest_version,
+            latest_version_last_updated,
+            provider,
+        ) in rows
+        {
             let provider = match provider.as_str() {
                 "github" => {
                     let sql = r#"SELECT repository FROM github_programs WHERE name = ?"#;
@@ -130,7 +156,9 @@ impl ProgramDb {
             programs.push(Program {
                 name,
                 current_version,
+                current_version_last_updated,
                 latest_version,
+                latest_version_last_updated,
                 provider,
             });
         }
@@ -138,10 +166,16 @@ impl ProgramDb {
         Ok(programs)
     }
 
-    pub async fn update_latest_version(&self, name: &str, latest_version: &str) -> Result<()> {
-        let sql = r#"UPDATE programs SET latest_version = ? WHERE name = ?"#;
+    pub async fn update_latest_version(
+        &self,
+        name: &str,
+        latest_version: &str,
+        latest_version_last_updated: NaiveDateTime,
+    ) -> Result<()> {
+        let sql = r#"UPDATE programs SET latest_version = ?, latest_version_last_updated = ? WHERE name = ?"#;
         sqlx::query(sql)
             .bind(latest_version)
+            .bind(latest_version_last_updated)
             .bind(name)
             .execute(&self.pool)
             .await?;
@@ -149,10 +183,16 @@ impl ProgramDb {
         Ok(())
     }
 
-    pub async fn update_current_version(&self, name: &str, current_version: &str) -> Result<()> {
-        let sql = r#"UPDATE programs SET current_version = ? WHERE name = ?"#;
+    pub async fn update_current_version(
+        &self,
+        name: &str,
+        current_version: &str,
+        current_version_last_updated: NaiveDateTime,
+    ) -> Result<()> {
+        let sql = r#"UPDATE programs SET current_version = ?, current_version_last_updated = ? WHERE name = ?"#;
         sqlx::query(sql)
             .bind(current_version)
+            .bind(current_version_last_updated)
             .bind(name)
             .execute(&self.pool)
             .await?;
@@ -189,7 +229,6 @@ impl ProgramDb {
 
 #[cfg(test)]
 mod tests {
-    use std::str::FromStr;
 
     use sqlx::{
         SqlitePool,
@@ -199,7 +238,6 @@ mod tests {
     use crate::{
         UpdateCheck, UpdateCheckType,
         db::{Program, Provider},
-        update_check,
     };
 
     use super::ProgramDb;
@@ -214,12 +252,28 @@ mod tests {
         let program = Program {
             name: "simple_update_checker".to_string(),
             current_version: "0.1.0".to_string(),
+            current_version_last_updated: NaiveDateTime::new(
+                NaiveDate::parse_from_str("10.03.2025", "%d.%m.%Y").unwrap(),
+                NaiveTime::parse_from_str("10:50:00", "%H:%M:%S").unwrap(),
+            ),
             latest_version: "0.1.0".to_string(),
+            latest_version_last_updated: NaiveDateTime::new(
+                NaiveDate::parse_from_str("12.03.2025", "%d.%m.%Y").unwrap(),
+                NaiveTime::parse_from_str("13:45:00", "%H:%M:%S").unwrap(),
+            ),
             provider: Provider::Github("LMH01/simple_update_checker".to_string()),
         };
         let program2 = Program {
             name: "test_program".to_string(),
             current_version: "0.1.0".to_string(),
+            current_version_last_updated: NaiveDateTime::new(
+                NaiveDate::parse_from_str("10.03.2025", "%d.%m.%Y").unwrap(),
+                NaiveTime::parse_from_str("10:50:00", "%H:%M:%S").unwrap(),
+            ),
+            latest_version_last_updated: NaiveDateTime::new(
+                NaiveDate::parse_from_str("12.03.2025", "%d.%m.%Y").unwrap(),
+                NaiveTime::parse_from_str("13:45:00", "%H:%M:%S").unwrap(),
+            ),
             latest_version: "0.1.0".to_string(),
             provider: Provider::Github("LMH01/test_program".to_string()),
         };
@@ -236,7 +290,15 @@ mod tests {
         let program = Program {
             name: "simple_update_checker".to_string(),
             current_version: "0.1.0".to_string(),
+            current_version_last_updated: NaiveDateTime::new(
+                NaiveDate::parse_from_str("10.03.2025", "%d.%m.%Y").unwrap(),
+                NaiveTime::parse_from_str("10:50:00", "%H:%M:%S").unwrap(),
+            ),
             latest_version: "0.1.0".to_string(),
+            latest_version_last_updated: NaiveDateTime::new(
+                NaiveDate::parse_from_str("12.03.2025", "%d.%m.%Y").unwrap(),
+                NaiveTime::parse_from_str("13:45:00", "%H:%M:%S").unwrap(),
+            ),
             provider: Provider::Github("LMH01/simple_update_checker".to_string()),
         };
         program_db.add_program(&program).await.unwrap();
@@ -251,13 +313,29 @@ mod tests {
         let program = Program {
             name: "simple_update_checker".to_string(),
             current_version: "0.1.0".to_string(),
+            current_version_last_updated: NaiveDateTime::new(
+                NaiveDate::parse_from_str("10.03.2025", "%d.%m.%Y").unwrap(),
+                NaiveTime::parse_from_str("10:50:00", "%H:%M:%S").unwrap(),
+            ),
             latest_version: "0.1.0".to_string(),
+            latest_version_last_updated: NaiveDateTime::new(
+                NaiveDate::parse_from_str("12.03.2025", "%d.%m.%Y").unwrap(),
+                NaiveTime::parse_from_str("13:45:00", "%H:%M:%S").unwrap(),
+            ),
             provider: Provider::Github("LMH01/simple_update_checker".to_string()),
         };
         let program2 = Program {
             name: "test_program".to_string(),
             current_version: "0.1.0".to_string(),
+            current_version_last_updated: NaiveDateTime::new(
+                NaiveDate::parse_from_str("10.03.2025", "%d.%m.%Y").unwrap(),
+                NaiveTime::parse_from_str("10:50:00", "%H:%M:%S").unwrap(),
+            ),
             latest_version: "0.1.0".to_string(),
+            latest_version_last_updated: NaiveDateTime::new(
+                NaiveDate::parse_from_str("12.03.2025", "%d.%m.%Y").unwrap(),
+                NaiveTime::parse_from_str("13:45:00", "%H:%M:%S").unwrap(),
+            ),
             provider: Provider::Github("LMH01/test_program".to_string()),
         };
         program_db.add_program(&program).await.unwrap();
@@ -275,12 +353,28 @@ mod tests {
         let mut program = Program {
             name: "simple_update_checker".to_string(),
             current_version: "0.1.0".to_string(),
+            current_version_last_updated: NaiveDateTime::new(
+                NaiveDate::parse_from_str("10.03.2025", "%d.%m.%Y").unwrap(),
+                NaiveTime::parse_from_str("10:50:00", "%H:%M:%S").unwrap(),
+            ),
             latest_version: "0.1.0".to_string(),
+            latest_version_last_updated: NaiveDateTime::new(
+                NaiveDate::parse_from_str("12.03.2025", "%d.%m.%Y").unwrap(),
+                NaiveTime::parse_from_str("13:45:00", "%H:%M:%S").unwrap(),
+            ),
             provider: Provider::Github("LMH01/simple_update_checker".to_string()),
         };
+        let new_latest_version_last_updated = NaiveDateTime::new(
+            NaiveDate::parse_from_str("01.01.2025", "%d.%m.%Y").unwrap(),
+            NaiveTime::parse_from_str("00:00:00", "%H:%M:%S").unwrap(),
+        );
         program_db.add_program(&program).await.unwrap();
         program_db
-            .update_latest_version(&program.name, "0.2.0")
+            .update_latest_version(
+                &program.name,
+                "0.2.0",
+                new_latest_version_last_updated.clone(),
+            )
             .await
             .unwrap();
         let res = program_db
@@ -289,6 +383,7 @@ mod tests {
             .unwrap()
             .unwrap();
         program.latest_version = "0.2.0".to_string();
+        program.latest_version_last_updated = new_latest_version_last_updated;
         assert_eq!(program, res);
     }
 
@@ -298,12 +393,24 @@ mod tests {
         let mut program = Program {
             name: "simple_update_checker".to_string(),
             current_version: "0.1.0".to_string(),
+            current_version_last_updated: NaiveDateTime::new(
+                NaiveDate::parse_from_str("10.03.2025", "%d.%m.%Y").unwrap(),
+                NaiveTime::parse_from_str("10:50:00", "%H:%M:%S").unwrap(),
+            ),
             latest_version: "0.1.0".to_string(),
+            latest_version_last_updated: NaiveDateTime::new(
+                NaiveDate::parse_from_str("12.03.2025", "%d.%m.%Y").unwrap(),
+                NaiveTime::parse_from_str("13:45:00", "%H:%M:%S").unwrap(),
+            ),
             provider: Provider::Github("LMH01/simple_update_checker".to_string()),
         };
+        let new_current_version_last_updated = NaiveDateTime::new(
+            NaiveDate::parse_from_str("01.01.2025", "%d.%m.%Y").unwrap(),
+            NaiveTime::parse_from_str("00:00:00", "%H:%M:%S").unwrap(),
+        );
         program_db.add_program(&program).await.unwrap();
         program_db
-            .update_current_version(&program.name, "0.2.0")
+            .update_current_version(&program.name, "0.2.0", new_current_version_last_updated)
             .await
             .unwrap();
         let res = program_db
@@ -312,6 +419,7 @@ mod tests {
             .unwrap()
             .unwrap();
         program.current_version = "0.2.0".to_string();
+        program.current_version_last_updated = new_current_version_last_updated;
         assert_eq!(program, res);
     }
 

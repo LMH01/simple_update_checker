@@ -1,6 +1,7 @@
 use anyhow::Result;
 use reqwest::Client;
 use serde_json::Value;
+use sqlx::types::chrono::Utc;
 
 use crate::{Program, Provider, UpdateCheck, UpdateCheckType, cli::CheckArgs, db::ProgramDb};
 
@@ -56,14 +57,18 @@ pub async fn check_for_updates(
             .check_for_latest_version(&github_access_token)
             .await?;
         if latest_version != program.latest_version {
-            db.update_latest_version(&program.name, &latest_version)
+            db.update_latest_version(&program.name, &latest_version, Utc::now().naive_utc())
                 .await
                 .unwrap();
             if let Some(check_args) = &check_args {
                 if check_args.set_current_version {
-                    db.update_current_version(&program.name, &latest_version)
-                        .await
-                        .unwrap();
+                    db.update_current_version(
+                        &program.name,
+                        &latest_version,
+                        Utc::now().naive_utc(),
+                    )
+                    .await
+                    .unwrap();
                 }
             }
             program.latest_version = latest_version;
