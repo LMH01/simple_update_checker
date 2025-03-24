@@ -8,11 +8,11 @@ use crate::{
     UpdateHistoryEntry,
 };
 
-pub struct ProgramDb {
+pub struct Db {
     pub pool: SqlitePool,
 }
 
-impl ProgramDb {
+impl Db {
     pub async fn connect(path: &str) -> Result<Self> {
         let options = SqliteConnectOptions::new()
             .filename(path)
@@ -326,15 +326,15 @@ mod tests {
         db::{Program, Provider},
     };
 
-    use super::ProgramDb;
+    use super::Db;
 
-    fn program_db(pool: SqlitePool) -> ProgramDb {
-        ProgramDb { pool }
+    fn db(pool: SqlitePool) -> Db {
+        Db { pool }
     }
 
     #[sqlx::test]
-    fn test_program_db(pool: SqlitePool) {
-        let program_db = program_db(pool);
+    fn test_db(pool: SqlitePool) {
+        let db = db(pool);
         let program = Program {
             name: "simple_update_checker".to_string(),
             current_version: "0.1.0".to_string(),
@@ -363,16 +363,16 @@ mod tests {
             latest_version: "0.1.0".to_string(),
             provider: Provider::Github("LMH01/test_program".to_string()),
         };
-        program_db.insert_program(&program).await.unwrap();
-        let res = program_db.get_program(&program.name).await.unwrap();
+        db.insert_program(&program).await.unwrap();
+        let res = db.get_program(&program.name).await.unwrap();
         assert_eq!(Some(program), res);
-        let res = program_db.get_program(&program2.name).await.unwrap();
+        let res = db.get_program(&program2.name).await.unwrap();
         assert_eq!(None, res);
     }
 
     #[sqlx::test]
-    fn test_program_db_remove_program(pool: SqlitePool) {
-        let program_db = program_db(pool);
+    fn test_db_remove_program(pool: SqlitePool) {
+        let db = db(pool);
         let program = Program {
             name: "simple_update_checker".to_string(),
             current_version: "0.1.0".to_string(),
@@ -387,15 +387,15 @@ mod tests {
             ),
             provider: Provider::Github("LMH01/simple_update_checker".to_string()),
         };
-        program_db.insert_program(&program).await.unwrap();
-        program_db.remove_program(&program.name).await.unwrap();
-        let res = program_db.get_program(&program.name).await.unwrap();
+        db.insert_program(&program).await.unwrap();
+        db.remove_program(&program.name).await.unwrap();
+        let res = db.get_program(&program.name).await.unwrap();
         assert_eq!(res, None);
     }
 
     #[sqlx::test]
-    fn test_program_db_get_all_programs(pool: SqlitePool) {
-        let program_db = program_db(pool);
+    fn test_db_get_all_programs(pool: SqlitePool) {
+        let db = db(pool);
         let program = Program {
             name: "simple_update_checker".to_string(),
             current_version: "0.1.0".to_string(),
@@ -424,18 +424,18 @@ mod tests {
             ),
             provider: Provider::Github("LMH01/test_program".to_string()),
         };
-        program_db.insert_program(&program).await.unwrap();
-        program_db.insert_program(&program2).await.unwrap();
+        db.insert_program(&program).await.unwrap();
+        db.insert_program(&program2).await.unwrap();
         let mut should = vec![program, program2];
         should.sort_by(|a, b| a.name.cmp(&b.name));
-        let mut res = program_db.get_all_programs().await.unwrap();
+        let mut res = db.get_all_programs().await.unwrap();
         res.sort_by(|a, b| a.name.cmp(&b.name));
         assert_eq!(should, res);
     }
 
     #[sqlx::test]
-    fn test_program_db_update_latest_version(pool: SqlitePool) {
-        let program_db = program_db(pool);
+    fn test_db_update_latest_version(pool: SqlitePool) {
+        let db = db(pool);
         let mut program = Program {
             name: "simple_update_checker".to_string(),
             current_version: "0.1.0".to_string(),
@@ -454,8 +454,8 @@ mod tests {
             NaiveDate::parse_from_str("01.01.2025", "%d.%m.%Y").unwrap(),
             NaiveTime::parse_from_str("00:00:00", "%H:%M:%S").unwrap(),
         );
-        program_db.insert_program(&program).await.unwrap();
-        program_db
+        db.insert_program(&program).await.unwrap();
+        db
             .update_latest_version(
                 &program.name,
                 "0.2.0",
@@ -463,7 +463,7 @@ mod tests {
             )
             .await
             .unwrap();
-        let res = program_db
+        let res = db
             .get_program(&program.name)
             .await
             .unwrap()
@@ -474,8 +474,8 @@ mod tests {
     }
 
     #[sqlx::test]
-    fn test_program_db_update_current_version(pool: SqlitePool) {
-        let program_db = program_db(pool);
+    fn test_db_update_current_version(pool: SqlitePool) {
+        let db = db(pool);
         let mut program = Program {
             name: "simple_update_checker".to_string(),
             current_version: "0.1.0".to_string(),
@@ -494,12 +494,12 @@ mod tests {
             NaiveDate::parse_from_str("01.01.2025", "%d.%m.%Y").unwrap(),
             NaiveTime::parse_from_str("00:00:00", "%H:%M:%S").unwrap(),
         );
-        program_db.insert_program(&program).await.unwrap();
-        program_db
+        db.insert_program(&program).await.unwrap();
+        db
             .update_current_version(&program.name, "0.2.0", new_current_version_last_updated)
             .await
             .unwrap();
-        let res = program_db
+        let res = db
             .get_program(&program.name)
             .await
             .unwrap()
@@ -510,8 +510,8 @@ mod tests {
     }
 
     #[sqlx::test]
-    fn test_program_db_update_check(pool: SqlitePool) {
-        let program_db = program_db(pool);
+    fn test_db_update_check(pool: SqlitePool) {
+        let db = db(pool);
         let update_check = UpdateCheck {
             time: NaiveDateTime::new(
                 NaiveDate::parse_from_str("10.03.2025", "%d.%m.%Y").unwrap(),
@@ -526,25 +526,25 @@ mod tests {
             ),
             r#type: UpdateCheckType::Manual,
         };
-        program_db.insert_update_check(&update_check).await.unwrap();
-        program_db
+        db.insert_update_check(&update_check).await.unwrap();
+        db
             .insert_update_check(&update_check1)
             .await
             .unwrap();
-        let res = program_db.get_latest_update_check().await.unwrap();
+        let res = db.get_latest_update_check().await.unwrap();
         assert_eq!(Some(update_check1), res);
     }
 
     #[sqlx::test]
     fn test_program_db_update_check_not_existing(pool: SqlitePool) {
-        let program_db = program_db(pool);
-        let res = program_db.get_latest_update_check().await.unwrap();
+        let db = db(pool);
+        let res = db.get_latest_update_check().await.unwrap();
         assert!(res.is_none())
     }
 
     #[sqlx::test]
-    fn test_program_db_set_notification_sent(pool: SqlitePool) {
-        let program_db = program_db(pool);
+    fn test_db_set_notification_sent(pool: SqlitePool) {
+        let db = db(pool);
         let program = Program {
             name: "simple_update_checker".to_string(),
             current_version: "0.1.0".to_string(),
@@ -573,20 +573,20 @@ mod tests {
             latest_version: "0.1.0".to_string(),
             provider: Provider::Github("LMH01/test_program".to_string()),
         };
-        program_db.insert_program(&program).await.unwrap();
-        program_db.insert_program(&program2).await.unwrap();
-        program_db
+        db.insert_program(&program).await.unwrap();
+        db.insert_program(&program2).await.unwrap();
+        db
             .set_notification_sent("simple_update_checker", true)
             .await
             .unwrap();
-        let res = program_db
+        let res = db
             .get_notification_info("simple_update_checker")
             .await
             .unwrap()
             .unwrap()
             .sent;
         assert_eq!(true, res);
-        let res = program_db
+        let res = db
             .get_notification_info("test_program")
             .await
             .unwrap()
@@ -596,8 +596,8 @@ mod tests {
     }
 
     #[sqlx::test]
-    fn test_program_db_set_notification_sent_on(pool: SqlitePool) {
-        let program_db = program_db(pool);
+    fn test_db_set_notification_sent_on(pool: SqlitePool) {
+        let db = db(pool);
         let program = Program {
             name: "simple_update_checker".to_string(),
             current_version: "0.1.0".to_string(),
@@ -626,19 +626,19 @@ mod tests {
             latest_version: "0.1.0".to_string(),
             provider: Provider::Github("LMH01/test_program".to_string()),
         };
-        program_db.insert_program(&program).await.unwrap();
-        program_db.insert_program(&program2).await.unwrap();
+        db.insert_program(&program).await.unwrap();
+        db.insert_program(&program2).await.unwrap();
 
         let test_date_time = NaiveDateTime::new(
             NaiveDate::parse_from_str("10.03.2025", "%d.%m.%Y").unwrap(),
             NaiveTime::parse_from_str("10:50:00", "%H:%M:%S").unwrap(),
         );
 
-        program_db
+        db
             .set_notification_sent_on("simple_update_checker", Some(test_date_time.clone()))
             .await
             .unwrap();
-        let res = program_db
+        let res = db
             .get_notification_info("simple_update_checker")
             .await
             .unwrap()
@@ -646,7 +646,7 @@ mod tests {
             .sent_on;
         assert_eq!(Some(test_date_time), res);
 
-        let res = program_db
+        let res = db
             .get_notification_info("test_program")
             .await
             .unwrap()
@@ -654,12 +654,12 @@ mod tests {
             .sent_on;
         assert_eq!(None, res);
 
-        program_db
+        db
             .set_notification_sent_on("simple_update_checker", None)
             .await
             .unwrap();
 
-        let res = program_db
+        let res = db
             .get_notification_info("simple_update_checker")
             .await
             .unwrap()
@@ -669,15 +669,15 @@ mod tests {
     }
 
     #[sqlx::test]
-    fn test_program_db_get_notification_sent_program_not_existing(pool: SqlitePool) {
-        let program_db = program_db(pool);
-        let res = program_db.get_notification_info("name").await.unwrap();
+    fn test_db_get_notification_sent_program_not_existing(pool: SqlitePool) {
+        let db = db(pool);
+        let res = db.get_notification_info("name").await.unwrap();
         assert!(res.is_none())
     }
 
     #[sqlx::test]
-    fn test_program_db_insert_performed_update(pool: SqlitePool) {
-        let program_db = program_db(pool);
+    fn test_db_insert_performed_update(pool: SqlitePool) {
+        let db = db(pool);
         let entry = UpdateHistoryEntry {
             date: NaiveDateTime::new(
                 NaiveDate::parse_from_str("12.03.2025", "%d.%m.%Y").unwrap(),
@@ -687,16 +687,16 @@ mod tests {
             old_version: "1.0.0".to_string(),
             updated_to: "1.1.0".to_string(),
         };
-        program_db.insert_performed_update(&entry).await.unwrap();
+        db.insert_performed_update(&entry).await.unwrap();
 
-        let res = program_db.get_all_updates(None).await.unwrap();
+        let res = db.get_all_updates(None).await.unwrap();
 
         assert_eq!(entry, res[0]);
     }
 
     #[sqlx::test]
-    fn test_program_db_get_all_updates(pool: SqlitePool) {
-        let program_db = program_db(pool);
+    fn test_db_get_all_updates(pool: SqlitePool) {
+        let db = db(pool);
         let entry = UpdateHistoryEntry {
             date: NaiveDateTime::new(
                 NaiveDate::parse_from_str("12.03.2025", "%d.%m.%Y").unwrap(),
@@ -724,18 +724,18 @@ mod tests {
             old_version: "1.2.0".to_string(),
             updated_to: "1.3.0".to_string(),
         };
-        program_db.insert_performed_update(&entry).await.unwrap();
-        program_db.insert_performed_update(&entry2).await.unwrap();
-        program_db.insert_performed_update(&entry3).await.unwrap();
+        db.insert_performed_update(&entry).await.unwrap();
+        db.insert_performed_update(&entry2).await.unwrap();
+        db.insert_performed_update(&entry3).await.unwrap();
 
-        let res = program_db.get_all_updates(None).await.unwrap();
+        let res = db.get_all_updates(None).await.unwrap();
 
         assert_eq!(vec![entry, entry2, entry3], res);
     }
 
     #[sqlx::test]
-    fn test_program_db_get_all_updates_limited_returns(pool: SqlitePool) {
-        let program_db = program_db(pool);
+    fn test_db_get_all_updates_limited_returns(pool: SqlitePool) {
+        let db = db(pool);
         let entry = UpdateHistoryEntry {
             date: NaiveDateTime::new(
                 NaiveDate::parse_from_str("12.03.2025", "%d.%m.%Y").unwrap(),
@@ -763,11 +763,11 @@ mod tests {
             old_version: "1.2.0".to_string(),
             updated_to: "1.3.0".to_string(),
         };
-        program_db.insert_performed_update(&entry).await.unwrap();
-        program_db.insert_performed_update(&entry2).await.unwrap();
-        program_db.insert_performed_update(&entry3).await.unwrap();
+        db.insert_performed_update(&entry).await.unwrap();
+        db.insert_performed_update(&entry2).await.unwrap();
+        db.insert_performed_update(&entry3).await.unwrap();
 
-        let res = program_db.get_all_updates(Some(2)).await.unwrap();
+        let res = db.get_all_updates(Some(2)).await.unwrap();
 
         assert_eq!(vec![entry, entry2], res);
     }

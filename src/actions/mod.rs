@@ -6,7 +6,7 @@ use tabled::Table;
 use crate::{
     DbConfig, Identifier, UpdateCheckType, UpdateHistoryEntry,
     cli::{CheckArgs, RemoveProgramArgs, UpdateArgs, UpdateHistoryArgs},
-    db::ProgramDb,
+    db::Db,
     update_check,
 };
 
@@ -14,7 +14,7 @@ pub mod add_program;
 pub mod run_timed;
 
 pub async fn remove_program(db_config: DbConfig, remove_program_args: RemoveProgramArgs) {
-    let db = ProgramDb::connect(&db_config.db_path).await.unwrap();
+    let db = Db::connect(&db_config.db_path).await.unwrap();
     if db
         .get_program(&remove_program_args.name)
         .await
@@ -35,7 +35,7 @@ pub async fn remove_program(db_config: DbConfig, remove_program_args: RemoveProg
 }
 
 pub async fn list_programs(db_config: DbConfig) {
-    let db = ProgramDb::connect(&db_config.db_path).await.unwrap();
+    let db = Db::connect(&db_config.db_path).await.unwrap();
     let mut programs = db.get_all_programs().await.unwrap();
     programs.sort_by(|a, b| a.name.cmp(&b.name));
     println!("The following programs are currently stored in the database:\n");
@@ -55,7 +55,7 @@ pub async fn list_programs(db_config: DbConfig) {
 }
 
 pub async fn check(db_args: DbConfig, check_args: CheckArgs, github_access_token: Option<String>) {
-    let db = ProgramDb::connect(&db_args.db_path).await.unwrap();
+    let db = Db::connect(&db_args.db_path).await.unwrap();
     let mut programs = db.get_all_programs().await.unwrap();
     programs.sort_by(|a, b| a.name.cmp(&b.name));
     println!("Checking {} programs for updates...", programs.len());
@@ -78,7 +78,7 @@ pub async fn check(db_args: DbConfig, check_args: CheckArgs, github_access_token
 }
 
 pub async fn update(db_config: DbConfig, update_args: UpdateArgs) {
-    let db = ProgramDb::connect(&db_config.db_path).await.unwrap();
+    let db = Db::connect(&db_config.db_path).await.unwrap();
     if db.get_program(&update_args.name).await.unwrap().is_none() {
         println!(
             "Unable to update current_version: Program {} does not exist in database.",
@@ -116,7 +116,7 @@ pub async fn update(db_config: DbConfig, update_args: UpdateArgs) {
 }
 
 pub async fn update_history(db_config: DbConfig, update_history_args: UpdateHistoryArgs) {
-    let db = ProgramDb::connect(&db_config.db_path).await.unwrap();
+    let db = Db::connect(&db_config.db_path).await.unwrap();
     let mut updates = db
         .get_all_updates(Some(update_history_args.max_entries))
         .await

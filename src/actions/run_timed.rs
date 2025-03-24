@@ -6,7 +6,7 @@ use tabled::Table;
 use tokio::signal::unix::{SignalKind, signal};
 
 use crate::{
-    DbConfig, Program, UpdateCheckType, cli::RunTimedArgs, db::ProgramDb, notification,
+    DbConfig, Program, UpdateCheckType, cli::RunTimedArgs, db::Db, notification,
     update_check,
 };
 
@@ -17,7 +17,7 @@ pub async fn run(
 ) {
     // check connection with database before starting thread
     tracing::info!("Checking database connection");
-    match ProgramDb::connect(&db_config.db_path).await {
+    match Db::connect(&db_config.db_path).await {
         Err(e) => {
             tracing::error!("Error while connecting to database: {e}");
             process::exit(1);
@@ -83,7 +83,7 @@ async fn check_for_updates(
     run_timed_args: &RunTimedArgs,
     github_access_token: &Option<String>,
 ) -> Result<()> {
-    let db = ProgramDb::connect(&db_config.db_path).await?;
+    let db = Db::connect(&db_config.db_path).await?;
     let mut programs = db.get_all_programs().await?;
     programs.sort_by(|a, b| a.name.cmp(&b.name));
     tracing::info!("Checking {} programs for updates...", programs.len());
@@ -115,7 +115,7 @@ async fn check_for_updates(
 }
 
 async fn send_update_notification(
-    db: &ProgramDb,
+    db: &Db,
     topic: &str,
     programs: &Vec<Program>,
 ) -> Result<()> {
