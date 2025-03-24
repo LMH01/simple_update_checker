@@ -3,7 +3,14 @@
 ## v1.3.0
 
 - notifications for new versions are now only sent once per new version
-- notifications are no longer sent in run-timed when the update check for the same version was previously performed manually
+- notifications are no longer sent in `run-timed` when the update check for the same version was previously performed manually
+- added `-a` flag to `check` command:
+
+```
+  -a, --allow-notification
+          Normally notifications are not sent in run-timed mode for updates that where seen manually.
+          Set this flag to not mark the update as seen and to make the notification get sent when run-timed mode is used the next time.
+```
 
 ## v1.2.1
 

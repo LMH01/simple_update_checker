@@ -97,6 +97,14 @@ pub struct CheckArgs {
         env
     }]
     pub set_current_version: bool,
+
+    #[arg{
+        short,
+        long,
+        help = "Normally notifications are not sent in run-timed mode for updates that where seen manually.\nSet this flag to not mark the update as seen and to make the notification get sent when run-timed mode is used the next time.",
+        env
+    }]
+    pub allow_notification: bool,
 }
 
 #[derive(Parser, Debug, Clone)]
