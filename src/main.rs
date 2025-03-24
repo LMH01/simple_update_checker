@@ -40,6 +40,9 @@ async fn main() {
             actions::check(db_config, check_args, cli.github_access_token).await
         }
         Command::Update(update_args) => actions::update(db_config, update_args).await,
+        Command::UpdateHistory(update_history_args) => {
+            actions::update_history(db_config, update_history_args).await
+        }
         Command::RunTimed(run_timed_args) => {
             run_timed::run(db_config, run_timed_args, cli.github_access_token).await
         }

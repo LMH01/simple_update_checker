@@ -44,6 +44,8 @@ pub enum Command {
     Check(CheckArgs),
     #[command(about = "Update current_version of a program to the currently found latest_version.")]
     Update(UpdateArgs),
+    #[command(about = "Show the history of performed updates.")]
+    UpdateHistory(UpdateHistoryArgs),
     #[command{
         about = "Periodically check all programs for updates.",
         long_about = "Periodically check all programs for updates. Sends a push notification when updates are found and the ntfy.sh topic is configured."
@@ -115,6 +117,17 @@ pub struct UpdateArgs {
         help = "Name of the program for which the current_version should be set to latest_version."
     )]
     pub name: String,
+}
+
+#[derive(Parser, Debug, Clone)]
+pub struct UpdateHistoryArgs {
+    #[arg(
+        short,
+        long,
+        help = "How many entries should me show at max.",
+        default_value = "20"
+    )]
+    pub max_entries: u32,
 }
 
 #[derive(Parser, Debug, Clone)]

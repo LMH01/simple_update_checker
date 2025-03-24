@@ -287,11 +287,11 @@ impl ProgramDb {
         &self,
         update_history_entry: &UpdateHistoryEntry,
     ) -> Result<()> {
-        let sql = r#"INSERT INTO update_history (time, name, current_version, updated_to) VALUES (?, ?, ?, ?)"#;
+        let sql = r#"INSERT INTO update_history (date, name, old_version, updated_to) VALUES (?, ?, ?, ?)"#;
         sqlx::query(sql)
-            .bind(update_history_entry.time)
+            .bind(update_history_entry.date)
             .bind(&update_history_entry.name)
-            .bind(&update_history_entry.current_version)
+            .bind(&update_history_entry.old_version)
             .bind(&update_history_entry.updated_to)
             .execute(&self.pool)
             .await?;
@@ -303,7 +303,7 @@ impl ProgramDb {
         &self,
         max_entries: Option<u32>,
     ) -> Result<Vec<UpdateHistoryEntry>> {
-        let sql = r#"SELECT time, name, current_version, updated_to FROM update_history ORDER BY time ASC LIMIT ?"#;
+        let sql = r#"SELECT date, name, old_version, updated_to FROM update_history ORDER BY date ASC LIMIT ?"#;
         let entries = sqlx::query_as::<_, UpdateHistoryEntry>(sql)
             .bind(max_entries.unwrap_or(100))
             .fetch_all(&self.pool)
@@ -679,12 +679,12 @@ mod tests {
     fn test_program_db_insert_performed_update(pool: SqlitePool) {
         let program_db = program_db(pool);
         let entry = UpdateHistoryEntry {
-            time: NaiveDateTime::new(
+            date: NaiveDateTime::new(
                 NaiveDate::parse_from_str("12.03.2025", "%d.%m.%Y").unwrap(),
                 NaiveTime::parse_from_str("13:45:00", "%H:%M:%S").unwrap(),
             ),
             name: "alpha_tui".to_string(),
-            current_version: "1.0.0".to_string(),
+            old_version: "1.0.0".to_string(),
             updated_to: "1.1.0".to_string(),
         };
         program_db.insert_performed_update(&entry).await.unwrap();
@@ -698,30 +698,30 @@ mod tests {
     fn test_program_db_get_all_updates(pool: SqlitePool) {
         let program_db = program_db(pool);
         let entry = UpdateHistoryEntry {
-            time: NaiveDateTime::new(
+            date: NaiveDateTime::new(
                 NaiveDate::parse_from_str("12.03.2025", "%d.%m.%Y").unwrap(),
                 NaiveTime::parse_from_str("13:45:00", "%H:%M:%S").unwrap(),
             ),
             name: "alpha_tui".to_string(),
-            current_version: "1.0.0".to_string(),
+            old_version: "1.0.0".to_string(),
             updated_to: "1.1.0".to_string(),
         };
         let entry2 = UpdateHistoryEntry {
-            time: NaiveDateTime::new(
+            date: NaiveDateTime::new(
                 NaiveDate::parse_from_str("13.03.2025", "%d.%m.%Y").unwrap(),
                 NaiveTime::parse_from_str("13:45:00", "%H:%M:%S").unwrap(),
             ),
             name: "alpha_tui".to_string(),
-            current_version: "1.1.0".to_string(),
+            old_version: "1.1.0".to_string(),
             updated_to: "1.2.0".to_string(),
         };
         let entry3 = UpdateHistoryEntry {
-            time: NaiveDateTime::new(
+            date: NaiveDateTime::new(
                 NaiveDate::parse_from_str("14.03.2025", "%d.%m.%Y").unwrap(),
                 NaiveTime::parse_from_str("13:45:00", "%H:%M:%S").unwrap(),
             ),
             name: "alpha_tui".to_string(),
-            current_version: "1.2.0".to_string(),
+            old_version: "1.2.0".to_string(),
             updated_to: "1.3.0".to_string(),
         };
         program_db.insert_performed_update(&entry).await.unwrap();
@@ -737,30 +737,30 @@ mod tests {
     fn test_program_db_get_all_updates_limited_returns(pool: SqlitePool) {
         let program_db = program_db(pool);
         let entry = UpdateHistoryEntry {
-            time: NaiveDateTime::new(
+            date: NaiveDateTime::new(
                 NaiveDate::parse_from_str("12.03.2025", "%d.%m.%Y").unwrap(),
                 NaiveTime::parse_from_str("13:45:00", "%H:%M:%S").unwrap(),
             ),
             name: "alpha_tui".to_string(),
-            current_version: "1.0.0".to_string(),
+            old_version: "1.0.0".to_string(),
             updated_to: "1.1.0".to_string(),
         };
         let entry2 = UpdateHistoryEntry {
-            time: NaiveDateTime::new(
+            date: NaiveDateTime::new(
                 NaiveDate::parse_from_str("13.03.2025", "%d.%m.%Y").unwrap(),
                 NaiveTime::parse_from_str("13:45:00", "%H:%M:%S").unwrap(),
             ),
             name: "alpha_tui".to_string(),
-            current_version: "1.1.0".to_string(),
+            old_version: "1.1.0".to_string(),
             updated_to: "1.2.0".to_string(),
         };
         let entry3 = UpdateHistoryEntry {
-            time: NaiveDateTime::new(
+            date: NaiveDateTime::new(
                 NaiveDate::parse_from_str("14.03.2025", "%d.%m.%Y").unwrap(),
                 NaiveTime::parse_from_str("13:45:00", "%H:%M:%S").unwrap(),
             ),
             name: "alpha_tui".to_string(),
-            current_version: "1.2.0".to_string(),
+            old_version: "1.2.0".to_string(),
             updated_to: "1.3.0".to_string(),
         };
         program_db.insert_performed_update(&entry).await.unwrap();

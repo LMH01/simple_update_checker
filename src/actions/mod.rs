@@ -5,7 +5,7 @@ use tabled::Table;
 
 use crate::{
     DbConfig, Identifier, UpdateCheckType, UpdateHistoryEntry,
-    cli::{CheckArgs, RemoveProgramArgs, UpdateArgs},
+    cli::{CheckArgs, RemoveProgramArgs, UpdateArgs, UpdateHistoryArgs},
     db::ProgramDb,
     update_check,
 };
@@ -102,9 +102,9 @@ pub async fn update(db_config: DbConfig, update_args: UpdateArgs) {
     .await
     .unwrap();
     db.insert_performed_update(&UpdateHistoryEntry {
-        time: Utc::now().naive_utc(),
+        date: Utc::now().naive_utc(),
         name: program.name.clone(),
-        current_version: program.current_version,
+        old_version: program.current_version,
         updated_to: program.latest_version.clone(),
     })
     .await
@@ -113,4 +113,19 @@ pub async fn update(db_config: DbConfig, update_args: UpdateArgs) {
         "current_version of {} has been updated to latest version ({})",
         &program.name, &program.latest_version
     );
+}
+
+pub async fn update_history(db_config: DbConfig, update_history_args: UpdateHistoryArgs) {
+    let db = ProgramDb::connect(&db_config.db_path).await.unwrap();
+    let mut updates = db
+        .get_all_updates(Some(update_history_args.max_entries))
+        .await
+        .unwrap();
+    updates.reverse();
+    println!(
+        "Showing the latest {} performed updates:\n(Newest update at the bottom)\n",
+        update_history_args.max_entries
+    );
+    let table = Table::new(updates);
+    println!("{}\n", table);
 }
