@@ -56,7 +56,8 @@ impl Program {
     }
 }
 
-#[must_use] pub fn format_datetime(value: &NaiveDateTime) -> String {
+#[must_use]
+pub fn format_datetime(value: &NaiveDateTime) -> String {
     value.format("%Y-%m-%d %H:%M:%S").to_string()
 }
 
@@ -159,7 +160,8 @@ pub struct UpdateCheckHistoryEntry {
 
 impl UpdateCheckHistoryEntry {
     /// Creates a new `UpdateCheck` entry from the current time and date.
-    #[must_use] pub fn from_now(r#type: UpdateCheckType, mut programs_with_updates: Vec<Program>) -> Self {
+    #[must_use]
+    pub fn from_now(r#type: UpdateCheckType, mut programs_with_updates: Vec<Program>) -> Self {
         programs_with_updates.sort_by(|a, b| a.name.cmp(&b.name));
         Self {
             date: Utc::now().naive_utc(),

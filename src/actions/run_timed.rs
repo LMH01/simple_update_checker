@@ -72,7 +72,10 @@ fn spawn(db_config: DbConfig, run_timed_args: RunTimedArgs, github_access_token:
                 "Starting next update check in {} seconds",
                 run_timed_args.check_interval
             );
-            tokio::time::sleep(Duration::from_secs(u64::from(run_timed_args.check_interval))).await;
+            tokio::time::sleep(Duration::from_secs(u64::from(
+                run_timed_args.check_interval,
+            )))
+            .await;
         }
     });
 }

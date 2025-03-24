@@ -10,7 +10,8 @@ impl Db {
         &self,
         update_history_entry: &UpdateHistoryEntry,
     ) -> Result<()> {
-        let sql = r"INSERT INTO update_history (date, name, old_version, updated_to) VALUES (?, ?, ?, ?)";
+        let sql =
+            r"INSERT INTO update_history (date, name, old_version, updated_to) VALUES (?, ?, ?, ?)";
         sqlx::query(sql)
             .bind(update_history_entry.date)
             .bind(&update_history_entry.name)
