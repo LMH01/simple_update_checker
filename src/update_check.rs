@@ -3,7 +3,7 @@ use reqwest::Client;
 use serde_json::Value;
 use sqlx::types::chrono::Utc;
 
-use crate::{Program, Provider, UpdateCheck, UpdateCheckType, cli::CheckArgs, db::ProgramDb};
+use crate::{Program, Provider, UpdateCheck, UpdateCheckType, cli::CheckArgs, db::Db};
 
 impl Provider {
     // Checks what the latest version for the program using this provider is.
@@ -40,7 +40,7 @@ impl Provider {
 /// Checks all programs in the database for updates. Updates `latest_version` when update was found.
 /// Returns a vector containing all programs for which updates are available.
 pub async fn check_for_updates(
-    db: &ProgramDb,
+    db: &Db,
     check_args: Option<CheckArgs>,
     github_access_token: &Option<String>,
     print_messages: bool,

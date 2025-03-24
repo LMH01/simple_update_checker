@@ -3,7 +3,7 @@ use std::process;
 use crate::{
     DbConfig, Program, Provider,
     cli::{AddGithubProgramArgs, AddProgramArgs},
-    db::ProgramDb,
+    db::Db,
 };
 
 pub async fn add_program_github(
@@ -12,7 +12,7 @@ pub async fn add_program_github(
     add_github_program_args: &AddGithubProgramArgs,
     github_access_token: Option<String>,
 ) {
-    let db = ProgramDb::connect(&db_config.db_path).await.unwrap();
+    let db = Db::connect(&db_config.db_path).await.unwrap();
 
     if db
         .get_program(&add_program_args.name)
