@@ -225,6 +225,33 @@ impl ProgramDb {
         }
         Ok(None)
     }
+
+    pub async fn set_notification_sent(
+        &self,
+        program_name: &str,
+        notification_sent: bool,
+    ) -> Result<()> {
+        let sql = r#"UPDATE programs SET notification_sent = ? WHERE name = ?"#;
+        sqlx::query(sql)
+            .bind(notification_sent)
+            .bind(program_name)
+            .execute(&self.pool)
+            .await?;
+
+        Ok(())
+    }
+
+    pub async fn get_notification_sent(&self, program_name: &str) -> Result<Option<bool>> {
+        let sql = r#"SELECT notification_sent FROM programs WHERE name = ?"#;
+        if let Some((notification_send,)) = sqlx::query_as::<_, (bool,)>(sql)
+            .bind(program_name)
+            .fetch_optional(&self.pool)
+            .await?
+        {
+            return Ok(Some(notification_send));
+        }
+        Ok(None)
+    }
 }
 
 #[cfg(test)]
@@ -453,6 +480,62 @@ mod tests {
     fn test_program_db_update_check_not_existing(pool: SqlitePool) {
         let program_db = program_db(pool);
         let res = program_db.get_latest_update_check().await.unwrap();
+        assert!(res.is_none())
+    }
+
+    #[sqlx::test]
+    fn test_program_db_set_notification_sent(pool: SqlitePool) {
+        let program_db = program_db(pool);
+        let program = Program {
+            name: "simple_update_checker".to_string(),
+            current_version: "0.1.0".to_string(),
+            current_version_last_updated: NaiveDateTime::new(
+                NaiveDate::parse_from_str("10.03.2025", "%d.%m.%Y").unwrap(),
+                NaiveTime::parse_from_str("10:50:00", "%H:%M:%S").unwrap(),
+            ),
+            latest_version: "0.1.0".to_string(),
+            latest_version_last_updated: NaiveDateTime::new(
+                NaiveDate::parse_from_str("12.03.2025", "%d.%m.%Y").unwrap(),
+                NaiveTime::parse_from_str("13:45:00", "%H:%M:%S").unwrap(),
+            ),
+            provider: Provider::Github("LMH01/simple_update_checker".to_string()),
+        };
+        let program2 = Program {
+            name: "test_program".to_string(),
+            current_version: "0.1.0".to_string(),
+            current_version_last_updated: NaiveDateTime::new(
+                NaiveDate::parse_from_str("10.03.2025", "%d.%m.%Y").unwrap(),
+                NaiveTime::parse_from_str("10:50:00", "%H:%M:%S").unwrap(),
+            ),
+            latest_version_last_updated: NaiveDateTime::new(
+                NaiveDate::parse_from_str("12.03.2025", "%d.%m.%Y").unwrap(),
+                NaiveTime::parse_from_str("13:45:00", "%H:%M:%S").unwrap(),
+            ),
+            latest_version: "0.1.0".to_string(),
+            provider: Provider::Github("LMH01/test_program".to_string()),
+        };
+        program_db.add_program(&program).await.unwrap();
+        program_db.add_program(&program2).await.unwrap();
+        program_db
+            .set_notification_sent("simple_update_checker", true)
+            .await
+            .unwrap();
+        let res = program_db
+            .get_notification_sent("simple_update_checker")
+            .await
+            .unwrap();
+        assert_eq!(Some(true), res);
+        let res = program_db
+            .get_notification_sent("test_program")
+            .await
+            .unwrap();
+        assert_eq!(Some(false), res);
+    }
+
+    #[sqlx::test]
+    fn test_program_db_get_notification_sent_program_not_existing(pool: SqlitePool) {
+        let program_db = program_db(pool);
+        let res = program_db.get_notification_sent("name").await.unwrap();
         assert!(res.is_none())
     }
 }
