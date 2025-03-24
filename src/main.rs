@@ -29,25 +29,25 @@ async fn main() {
                     add_github_program_args,
                     cli.github_access_token,
                 )
-                .await
+                .await;
             }
         },
         Command::RemoveProgram(remove_program_args) => {
-            actions::remove_program(db_config, remove_program_args).await
+            actions::remove_program(db_config, remove_program_args).await;
         }
         Command::ListPrograms => actions::list_programs(db_config).await,
         Command::Check(check_args) => {
-            actions::check(db_config, check_args, cli.github_access_token).await
+            actions::check(db_config, check_args, cli.github_access_token).await;
         }
         Command::Update(update_args) => actions::update(db_config, update_args).await,
         Command::UpdateHistory(update_history_args) => {
-            actions::update_history(db_config, update_history_args).await
+            actions::update_history(db_config, update_history_args).await;
         }
         Command::UpdateCheckHistory(update_check_history_args) => {
-            actions::update_check_history(db_config, update_check_history_args).await
+            actions::update_check_history(db_config, update_check_history_args).await;
         }
         Command::RunTimed(run_timed_args) => {
-            run_timed::run(db_config, run_timed_args, cli.github_access_token).await
+            run_timed::run(db_config, run_timed_args, cli.github_access_token).await;
         }
     }
 }
