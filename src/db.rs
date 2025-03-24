@@ -4,7 +4,7 @@ use anyhow::Result;
 use sqlx::{SqlitePool, sqlite::SqliteConnectOptions, types::chrono::NaiveDateTime};
 
 use crate::{
-    Identifier, NotificationInfo, Program, Provider, UpdateCheck, UpdateCheckType,
+    Identifier, NotificationInfo, Program, Provider, UpdateCheckHistoryEntry, UpdateCheckType,
     UpdateHistoryEntry,
 };
 
@@ -211,27 +211,32 @@ impl Db {
         Ok(())
     }
 
-    pub async fn insert_update_check(&self, update_check: &UpdateCheck) -> Result<()> {
-        let sql = r#"INSERT INTO update_checks (date, type) VALUES (?, ?)"#;
+    pub async fn insert_update_check_history(&self, update_check: &UpdateCheckHistoryEntry) -> Result<()> {
+        let sql = r#"INSERT INTO update_check_history (date, type, updates_available, programs) VALUES (?, ?, ?, ?)"#;
         sqlx::query(sql)
-            .bind(update_check.time)
+            .bind(update_check.date)
             .bind(update_check.r#type.identifier())
+            .bind(update_check.updates_available)
+            .bind(&update_check.programs)
             .execute(&self.pool)
             .await?;
 
         Ok(())
     }
 
-    pub async fn get_latest_update_check(&self) -> Result<Option<UpdateCheck>> {
-        let sql = r#"SELECT date, type FROM update_checks ORDER BY date DESC LIMIT 1"#;
-        if let Some(row) = sqlx::query_as::<_, (NaiveDateTime, String)>(sql)
-            .fetch_optional(&self.pool)
-            .await?
+    pub async fn get_latest_update_check_from_history(&self) -> Result<Option<UpdateCheckHistoryEntry>> {
+        let sql = r#"SELECT date, type, updates_available, programs FROM update_check_history ORDER BY date DESC LIMIT 1"#;
+        if let Some((date, r#type, updates_available, programs)) =
+            sqlx::query_as::<_, (NaiveDateTime, String, u32, String)>(sql)
+                .fetch_optional(&self.pool)
+                .await?
         {
-            return Ok(Some(UpdateCheck {
-                time: row.0,
-                r#type: UpdateCheckType::from_str(&row.1)
+            return Ok(Some(UpdateCheckHistoryEntry {
+                date,
+                r#type: UpdateCheckType::from_str(&r#type)
                     .expect("database should contain only valid entries"),
+                updates_available,
+                programs,
             }));
         }
         Ok(None)
@@ -322,7 +327,7 @@ mod tests {
     };
 
     use crate::{
-        UpdateCheck, UpdateCheckType, UpdateHistoryEntry,
+        UpdateCheckHistoryEntry, UpdateCheckType, UpdateHistoryEntry,
         db::{Program, Provider},
     };
 
@@ -455,19 +460,14 @@ mod tests {
             NaiveTime::parse_from_str("00:00:00", "%H:%M:%S").unwrap(),
         );
         db.insert_program(&program).await.unwrap();
-        db
-            .update_latest_version(
-                &program.name,
-                "0.2.0",
-                new_latest_version_last_updated.clone(),
-            )
-            .await
-            .unwrap();
-        let res = db
-            .get_program(&program.name)
-            .await
-            .unwrap()
-            .unwrap();
+        db.update_latest_version(
+            &program.name,
+            "0.2.0",
+            new_latest_version_last_updated.clone(),
+        )
+        .await
+        .unwrap();
+        let res = db.get_program(&program.name).await.unwrap().unwrap();
         program.latest_version = "0.2.0".to_string();
         program.latest_version_last_updated = new_latest_version_last_updated;
         assert_eq!(program, res);
@@ -495,15 +495,10 @@ mod tests {
             NaiveTime::parse_from_str("00:00:00", "%H:%M:%S").unwrap(),
         );
         db.insert_program(&program).await.unwrap();
-        db
-            .update_current_version(&program.name, "0.2.0", new_current_version_last_updated)
+        db.update_current_version(&program.name, "0.2.0", new_current_version_last_updated)
             .await
             .unwrap();
-        let res = db
-            .get_program(&program.name)
-            .await
-            .unwrap()
-            .unwrap();
+        let res = db.get_program(&program.name).await.unwrap().unwrap();
         program.current_version = "0.2.0".to_string();
         program.current_version_last_updated = new_current_version_last_updated;
         assert_eq!(program, res);
@@ -512,33 +507,34 @@ mod tests {
     #[sqlx::test]
     fn test_db_update_check(pool: SqlitePool) {
         let db = db(pool);
-        let update_check = UpdateCheck {
-            time: NaiveDateTime::new(
+        let update_check = UpdateCheckHistoryEntry {
+            date: NaiveDateTime::new(
                 NaiveDate::parse_from_str("10.03.2025", "%d.%m.%Y").unwrap(),
                 NaiveTime::parse_from_str("10:50:00", "%H:%M:%S").unwrap(),
             ),
             r#type: UpdateCheckType::Manual,
+            updates_available: 0,
+            programs: "".to_string(),
         };
-        let update_check1 = UpdateCheck {
-            time: NaiveDateTime::new(
+        let update_check1 = UpdateCheckHistoryEntry {
+            date: NaiveDateTime::new(
                 NaiveDate::parse_from_str("12.03.2025", "%d.%m.%Y").unwrap(),
                 NaiveTime::parse_from_str("13:45:00", "%H:%M:%S").unwrap(),
             ),
             r#type: UpdateCheckType::Manual,
+            updates_available: 2,
+            programs: "alpha_tui, simple_update_checker".to_string(),
         };
-        db.insert_update_check(&update_check).await.unwrap();
-        db
-            .insert_update_check(&update_check1)
-            .await
-            .unwrap();
-        let res = db.get_latest_update_check().await.unwrap();
+        db.insert_update_check_history(&update_check).await.unwrap();
+        db.insert_update_check_history(&update_check1).await.unwrap();
+        let res = db.get_latest_update_check_from_history().await.unwrap();
         assert_eq!(Some(update_check1), res);
     }
 
     #[sqlx::test]
     fn test_program_db_update_check_not_existing(pool: SqlitePool) {
         let db = db(pool);
-        let res = db.get_latest_update_check().await.unwrap();
+        let res = db.get_latest_update_check_from_history().await.unwrap();
         assert!(res.is_none())
     }
 
@@ -575,8 +571,7 @@ mod tests {
         };
         db.insert_program(&program).await.unwrap();
         db.insert_program(&program2).await.unwrap();
-        db
-            .set_notification_sent("simple_update_checker", true)
+        db.set_notification_sent("simple_update_checker", true)
             .await
             .unwrap();
         let res = db
@@ -634,8 +629,7 @@ mod tests {
             NaiveTime::parse_from_str("10:50:00", "%H:%M:%S").unwrap(),
         );
 
-        db
-            .set_notification_sent_on("simple_update_checker", Some(test_date_time.clone()))
+        db.set_notification_sent_on("simple_update_checker", Some(test_date_time.clone()))
             .await
             .unwrap();
         let res = db
@@ -654,8 +648,7 @@ mod tests {
             .sent_on;
         assert_eq!(None, res);
 
-        db
-            .set_notification_sent_on("simple_update_checker", None)
+        db.set_notification_sent_on("simple_update_checker", None)
             .await
             .unwrap();
 

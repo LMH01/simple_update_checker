@@ -3,7 +3,7 @@ use reqwest::Client;
 use serde_json::Value;
 use sqlx::types::chrono::Utc;
 
-use crate::{Program, Provider, UpdateCheck, UpdateCheckType, cli::CheckArgs, db::Db};
+use crate::{Program, Provider, UpdateCheckHistoryEntry, UpdateCheckType, cli::CheckArgs, db::Db};
 
 impl Provider {
     // Checks what the latest version for the program using this provider is.
@@ -123,8 +123,11 @@ pub async fn check_for_updates(
     }
 
     // add entry to database that update check was performed
-    db.insert_update_check(&UpdateCheck::from_now(update_check_type))
-        .await?;
+    db.insert_update_check_history(&UpdateCheckHistoryEntry::from_now(
+        update_check_type,
+        programs_with_available_updates.clone(),
+    ))
+    .await?;
 
     Ok(programs_with_available_updates)
 }

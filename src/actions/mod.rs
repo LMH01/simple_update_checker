@@ -42,10 +42,10 @@ pub async fn list_programs(db_config: DbConfig) {
     let table = Table::new(programs);
     println!("{}\n", table);
 
-    if let Some(last_update_check) = db.get_latest_update_check().await.unwrap() {
+    if let Some(last_update_check) = db.get_latest_update_check_from_history().await.unwrap() {
         println!(
             "Last update check performed on: (UTC) {} ({} update check)",
-            last_update_check.time.format("%Y-%m-%d %H:%M:%S"),
+            last_update_check.date.format("%Y-%m-%d %H:%M:%S"),
             last_update_check.r#type.identifier()
         );
     } else {

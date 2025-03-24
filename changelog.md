@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.4.0
+
+- number of available updates and programs for which updates are available are now stored in database in update_check_history table
+
 ## v1.3.0
 
 - notifications for new versions are now only sent once per new version

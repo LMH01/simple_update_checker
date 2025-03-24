@@ -1,4 +1,4 @@
-use std::{fmt::Display, str::FromStr};
+use std::{fmt::Display, str::FromStr, vec};
 
 use anyhow::Result;
 use cli::DbArgs;
@@ -145,18 +145,27 @@ impl From<DbArgs> for DbConfig {
 }
 
 /// Represents a single update check.
-#[derive(Debug, PartialEq)]
-pub struct UpdateCheck {
-    pub time: NaiveDateTime,
+#[derive(FromRow, Debug, PartialEq, Tabled)]
+pub struct UpdateCheckHistoryEntry {
+    pub date: NaiveDateTime,
     pub r#type: UpdateCheckType,
+    pub updates_available: u32,
+    pub programs: String,
 }
 
-impl UpdateCheck {
+impl UpdateCheckHistoryEntry {
     /// Creates a new UpdateCheck entry from the current time and date.
-    pub fn from_now(r#type: UpdateCheckType) -> Self {
+    pub fn from_now(r#type: UpdateCheckType, mut programs_with_updates: Vec<Program>) -> Self {
+        programs_with_updates.sort_by(|a, b| a.name.cmp(&b.name));
         Self {
-            time: Utc::now().naive_utc(),
+            date: Utc::now().naive_utc(),
             r#type,
+            updates_available: programs_with_updates.len() as u32,
+            programs: programs_with_updates
+                .into_iter()
+                .map(|f| f.name)
+                .collect::<Vec<String>>()
+                .join(", "),
         }
     }
 }
@@ -173,6 +182,12 @@ impl Identifier for UpdateCheckType {
             UpdateCheckType::Manual => "manual".to_string(),
             UpdateCheckType::Timed => "timed".to_string(),
         }
+    }
+}
+
+impl Display for UpdateCheckType {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.identifier())
     }
 }
 
