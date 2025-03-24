@@ -57,6 +57,13 @@ pub async fn check_for_updates(
             .check_for_latest_version(github_access_token)
             .await?;
         if latest_version != program.latest_version {
+            // new version found that does not yet exist in database
+            // reset notification info as new version is available and notification for that version was not yet sent
+
+            db.set_notification_sent(&program.name, false).await?;
+            db.set_notification_sent_on(&program.name, None).await?;
+
+            // update version in db
             db.update_latest_version(&program.name, &latest_version, Utc::now().naive_utc())
                 .await
                 .unwrap();
@@ -80,6 +87,7 @@ pub async fn check_for_updates(
             }
             programs_with_available_updates.push(program);
         } else if latest_version != program.current_version {
+            // newest latest_version already exists in database but program has not been updated yet
             if print_messages {
                 println!(
                     "{}: update found {} -> {}",
