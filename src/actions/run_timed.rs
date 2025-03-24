@@ -1,6 +1,7 @@
 use std::{process, time::Duration};
 
 use anyhow::Result;
+use sqlx::types::chrono::Utc;
 use tabled::Table;
 use tokio::signal::unix::{SignalKind, signal};
 
@@ -102,22 +103,62 @@ async fn check_for_updates(
         tracing::info!("Found updates for the following programs:");
         let table = Table::new(&programs_with_available_updates);
         tracing::info!("\n{table}");
-        send_update_notification(&run_timed_args.ntfy_topic, &programs_with_available_updates)
-            .await?;
+        send_update_notification(
+            &db,
+            &run_timed_args.ntfy_topic,
+            &programs_with_available_updates,
+        )
+        .await?;
     }
     tracing::info!("Found {} updates", available_updates);
     Ok(())
 }
 
-async fn send_update_notification(topic: &str, programs: &Vec<Program>) -> Result<()> {
+async fn send_update_notification(
+    db: &ProgramDb,
+    topic: &str,
+    programs: &Vec<Program>,
+) -> Result<()> {
     let mut message = String::new();
+    let mut programs_with_notifications_to_sent = Vec::new();
     for program in programs {
-        message.push_str(&format!(
-            "{}: {} -> {}\n",
-            program.name, program.current_version, program.latest_version
-        ));
+        // only add program to notification if notification for that program was not yet sent
+        let notification_info = match db.get_notification_info(&program.name).await? {
+            Some(notification_sent) => notification_sent,
+            None => anyhow::bail!("Unable to find program {} in database", program.name),
+        };
+        if notification_info.sent {
+            if let Some(sent_on) = notification_info.sent_on {
+                tracing::debug!(
+                    "Not adding {} to notification as notification was already sent on {}",
+                    program.name,
+                    sent_on,
+                )
+            } else {
+                anyhow::bail!("notification_sent_on not set when it should be set")
+            }
+        } else {
+            message.push_str(&format!(
+                "{}: {} -> {}\n",
+                program.name, program.current_version, program.latest_version
+            ));
+            programs_with_notifications_to_sent.push(program);
+        }
     }
     tracing::info!("Sending push notification to topic {}", topic);
-    notification::send_update_notification(topic, &message).await?;
+    match notification::send_update_notification(topic, &message).await {
+        Ok(()) => {
+            // mark programs with updates available as notification sent
+            for program in programs_with_notifications_to_sent {
+                db.set_notification_sent(&program.name, true).await?;
+                db.set_notification_sent_on(&program.name, Some(Utc::now().naive_utc()))
+                    .await?;
+            }
+        }
+        Err(e) => {
+            // notification was not sent, so we don't mark the notifications as sent
+            anyhow::bail!(e);
+        }
+    }
     Ok(())
 }

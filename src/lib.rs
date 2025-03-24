@@ -186,3 +186,8 @@ impl FromStr for UpdateCheckType {
         }
     }
 }
+
+pub struct NotificationInfo {
+    pub sent: bool,
+    pub sent_on: Option<NaiveDateTime>,
+}

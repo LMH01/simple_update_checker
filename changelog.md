@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.3.0
+
+- notifications for new versions are now only sent once per new version
+
 ## v1.2.1
 
 - fixed date column showing milliseconds in 'list-programs' command
