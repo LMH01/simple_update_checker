@@ -13,11 +13,11 @@ impl Provider {
     ) -> Result<String> {
         match self {
             Self::Github(repo) => {
-                let url = format!("https://api.github.com/repos/{}/releases/latest", repo);
+                let url = format!("https://api.github.com/repos/{repo}/releases/latest");
                 let mut request = Client::new().get(&url).header("User-Agent", "reqwest");
 
                 if let Some(token) = github_access_token {
-                    request = request.header("Authorization", format!("Bearer {token}"))
+                    request = request.header("Authorization", format!("Bearer {token}"));
                 };
                 let response = request.send().await?;
 

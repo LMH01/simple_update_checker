@@ -9,7 +9,7 @@ impl Db {
         program_name: &str,
         notification_sent: bool,
     ) -> Result<()> {
-        let sql = r#"UPDATE programs SET notification_sent = ? WHERE name = ?"#;
+        let sql = r"UPDATE programs SET notification_sent = ? WHERE name = ?";
         sqlx::query(sql)
             .bind(notification_sent)
             .bind(program_name)
@@ -24,7 +24,7 @@ impl Db {
         program_name: &str,
         notification_sent_on: Option<NaiveDateTime>,
     ) -> Result<()> {
-        let sql = r#"UPDATE programs SET notification_sent_on = ? WHERE name = ?"#;
+        let sql = r"UPDATE programs SET notification_sent_on = ? WHERE name = ?";
         sqlx::query(sql)
             .bind(notification_sent_on)
             .bind(program_name)
@@ -38,7 +38,7 @@ impl Db {
         &self,
         program_name: &str,
     ) -> Result<Option<NotificationInfo>> {
-        let sql = r#"SELECT notification_sent, notification_sent_on FROM programs WHERE name = ?"#;
+        let sql = r"SELECT notification_sent, notification_sent_on FROM programs WHERE name = ?";
         if let Some((sent, sent_on)) = sqlx::query_as::<_, (bool, Option<NaiveDateTime>)>(sql)
             .bind(program_name)
             .fetch_optional(&self.pool)

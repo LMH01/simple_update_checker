@@ -13,7 +13,7 @@ pub struct Config {
 }
 
 impl Config {
-    /// Tries to load the config located at ~/.config/simple_update_checker/config.toml
+    /// Tries to load the config located at ~/.`config/simple_update_checker/config.toml`
     ///
     /// ## Returns
     /// - `Ok(Config)` when the config exists and could be parsed.

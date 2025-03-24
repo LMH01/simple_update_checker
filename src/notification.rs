@@ -13,7 +13,7 @@ pub async fn send_error_notifictaion(topic: &str, message: &str) -> Result<()> {
 /// the provided topic.
 async fn send_notification(topic: &str, message: &str, title: &str, icon_str: &str) -> Result<()> {
     Client::new()
-        .request(Method::POST, format!("https://ntfy.sh/{}", topic))
+        .request(Method::POST, format!("https://ntfy.sh/{topic}"))
         .body(message.to_string())
         .header("Title", title)
         .header("Tags", icon_str)

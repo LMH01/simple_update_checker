@@ -23,13 +23,13 @@ pub struct Program {
     /// Version that is currently in use
     #[tabled(rename = "Current version (CV)")]
     current_version: String,
-    /// Last time 'current_version' was updated
+    /// Last time '`current_version`' was updated
     #[tabled(rename = "CV last updated", display("format_datetime"))]
     current_version_last_updated: NaiveDateTime,
     /// Newest version that is available
     #[tabled(rename = "Latest version (LV)")]
     latest_version: String,
-    /// Last time 'current_version' was updated
+    /// Last time '`current_version`' was updated
     #[tabled(rename = "LV last updated", display("format_datetime"))]
     latest_version_last_updated: NaiveDateTime,
     #[tabled(rename = "Provider")]
@@ -56,7 +56,7 @@ impl Program {
     }
 }
 
-pub fn format_datetime(value: &NaiveDateTime) -> String {
+#[must_use] pub fn format_datetime(value: &NaiveDateTime) -> String {
     value.format("%Y-%m-%d %H:%M:%S").to_string()
 }
 
@@ -91,7 +91,7 @@ pub struct DbConfig {
 
 impl DbConfig {
     /// Tries to create a db config by trying to load the config file from
-    /// '~/.config/simple_update_checker/config.toml'.
+    /// '~/.`config/simple_update_checker/config.toml`'.
     /// If the config is found and the cli argument '--db-path' is not set, the value from that config is taken.
     /// If the cli argument is set, its value will be used instead of the value from the config.
     pub fn try_create(db_args: DbArgs) -> Result<Self> {
@@ -158,8 +158,8 @@ pub struct UpdateCheckHistoryEntry {
 }
 
 impl UpdateCheckHistoryEntry {
-    /// Creates a new UpdateCheck entry from the current time and date.
-    pub fn from_now(r#type: UpdateCheckType, mut programs_with_updates: Vec<Program>) -> Self {
+    /// Creates a new `UpdateCheck` entry from the current time and date.
+    #[must_use] pub fn from_now(r#type: UpdateCheckType, mut programs_with_updates: Vec<Program>) -> Self {
         programs_with_updates.sort_by(|a, b| a.name.cmp(&b.name));
         Self {
             date: Utc::now().naive_utc(),

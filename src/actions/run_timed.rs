@@ -72,7 +72,7 @@ fn spawn(db_config: DbConfig, run_timed_args: RunTimedArgs, github_access_token:
                 "Starting next update check in {} seconds",
                 run_timed_args.check_interval
             );
-            tokio::time::sleep(Duration::from_secs(run_timed_args.check_interval as u64)).await
+            tokio::time::sleep(Duration::from_secs(u64::from(run_timed_args.check_interval))).await;
         }
     });
 }
@@ -128,12 +128,12 @@ async fn send_update_notification(db: &Db, topic: &str, programs: &Vec<Program>)
                     "Not adding {} to notification as notification was already sent on {}",
                     program.name,
                     crate::format_datetime(&sent_on),
-                )
+                );
             } else {
                 tracing::debug!(
                     "Not adding {} to notifications as program was manually checked for updates",
                     program.name
-                )
+                );
             }
         } else {
             message.push_str(&format!(

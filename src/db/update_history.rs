@@ -5,12 +5,12 @@ use crate::UpdateHistoryEntry;
 use super::Db;
 
 impl Db {
-    /// Add an UpdateHistoryEntry to update_history.
+    /// Add an `UpdateHistoryEntry` to `update_history`.
     pub async fn insert_performed_update(
         &self,
         update_history_entry: &UpdateHistoryEntry,
     ) -> Result<()> {
-        let sql = r#"INSERT INTO update_history (date, name, old_version, updated_to) VALUES (?, ?, ?, ?)"#;
+        let sql = r"INSERT INTO update_history (date, name, old_version, updated_to) VALUES (?, ?, ?, ?)";
         sqlx::query(sql)
             .bind(update_history_entry.date)
             .bind(&update_history_entry.name)
@@ -26,7 +26,7 @@ impl Db {
         &self,
         max_entries: Option<u32>,
     ) -> Result<Vec<UpdateHistoryEntry>> {
-        let sql = r#"SELECT date, name, old_version, updated_to FROM update_history ORDER BY date DESC LIMIT ?"#;
+        let sql = r"SELECT date, name, old_version, updated_to FROM update_history ORDER BY date DESC LIMIT ?";
         let entries = sqlx::query_as::<_, UpdateHistoryEntry>(sql)
             .bind(max_entries.unwrap_or(100))
             .fetch_all(&self.pool)

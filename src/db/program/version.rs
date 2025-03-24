@@ -10,7 +10,7 @@ impl Db {
         latest_version: &str,
         latest_version_last_updated: NaiveDateTime,
     ) -> Result<()> {
-        let sql = r#"UPDATE programs SET latest_version = ?, latest_version_last_updated = ? WHERE name = ?"#;
+        let sql = r"UPDATE programs SET latest_version = ?, latest_version_last_updated = ? WHERE name = ?";
         sqlx::query(sql)
             .bind(latest_version)
             .bind(latest_version_last_updated)
@@ -27,7 +27,7 @@ impl Db {
         current_version: &str,
         current_version_last_updated: NaiveDateTime,
     ) -> Result<()> {
-        let sql = r#"UPDATE programs SET current_version = ?, current_version_last_updated = ? WHERE name = ?"#;
+        let sql = r"UPDATE programs SET current_version = ?, current_version_last_updated = ? WHERE name = ?";
         sqlx::query(sql)
             .bind(current_version)
             .bind(current_version_last_updated)

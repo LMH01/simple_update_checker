@@ -40,7 +40,7 @@ pub async fn list_programs(db_config: DbConfig) {
     programs.sort_by(|a, b| a.name.cmp(&b.name));
     println!("The following programs are currently stored in the database:\n");
     let table = Table::new(programs);
-    println!("{}\n", table);
+    println!("{table}\n");
 
     if let Some(last_update_check) = db.get_latest_update_check_from_history().await.unwrap() {
         println!(
@@ -49,9 +49,9 @@ pub async fn list_programs(db_config: DbConfig) {
             last_update_check.r#type.identifier()
         );
     } else {
-        println!("Last update check performed on: never")
+        println!("Last update check performed on: never");
     }
-    println!("\nUse command 'check' to check all programs for updates.")
+    println!("\nUse command 'check' to check all programs for updates.");
 }
 
 pub async fn check(db_args: DbConfig, check_args: CheckArgs, github_access_token: Option<String>) {
@@ -73,7 +73,7 @@ pub async fn check(db_args: DbConfig, check_args: CheckArgs, github_access_token
     if !programs_with_available_updates.is_empty() {
         println!("\nSummary of programs that have updates available:\n");
         let table = Table::new(programs_with_available_updates);
-        println!("{}", table);
+        println!("{table}");
     }
 }
 
@@ -127,7 +127,7 @@ pub async fn update_history(db_config: DbConfig, update_history_args: UpdateHist
         update_history_args.max_entries
     );
     let table = Table::new(updates);
-    println!("{}\n", table);
+    println!("{table}\n");
 }
 
 pub async fn update_check_history(
@@ -145,5 +145,5 @@ pub async fn update_check_history(
         update_check_history_args.max_entries
     );
     let table = Table::new(updates);
-    println!("{}\n", table);
+    println!("{table}\n");
 }

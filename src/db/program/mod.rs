@@ -12,7 +12,7 @@ impl Db {
     /// Add a program to the database.
     pub async fn insert_program(&self, program: &Program) -> Result<()> {
         // insert into programs table
-        let sql = r#"INSERT INTO programs ('name','current_version', 'current_version_last_updated', 'latest_version', 'latest_version_last_updated' , 'provider') VALUES (?, ?, ?, ?, ?, ?)"#;
+        let sql = r"INSERT INTO programs ('name','current_version', 'current_version_last_updated', 'latest_version', 'latest_version_last_updated' , 'provider') VALUES (?, ?, ?, ?, ?, ?)";
         let _ = sqlx::query(sql)
             .bind(&program.name)
             .bind(&program.current_version)
@@ -25,7 +25,7 @@ impl Db {
         // insert into provider specific table
         match &program.provider {
             Provider::Github(repository) => {
-                let sql = r#"INSERT INTO github_programs ('name', 'repository') VALUES (?, ?)"#;
+                let sql = r"INSERT INTO github_programs ('name', 'repository') VALUES (?, ?)";
                 let _ = sqlx::query(sql)
                     .bind(&program.name)
                     .bind(repository)
@@ -44,12 +44,12 @@ impl Db {
         };
         match program.provider {
             Provider::Github(_) => {
-                let sql = r#"DELETE FROM github_programs WHERE name = ?"#;
+                let sql = r"DELETE FROM github_programs WHERE name = ?";
                 sqlx::query(sql).bind(name).execute(&self.pool).await?;
             }
         }
         // Delete from main programs table
-        let sql = r#"DELETE FROM programs WHERE name = ?"#;
+        let sql = r"DELETE FROM programs WHERE name = ?";
         sqlx::query(sql).bind(name).execute(&self.pool).await?;
 
         Ok(())
@@ -58,7 +58,7 @@ impl Db {
     /// Retrieve program form database. If name of program is no found, returns 'None'.
     pub async fn get_program(&self, name: &str) -> Result<Option<Program>> {
         // Retrieve the basic program details
-        let sql = r#"SELECT name, current_version, current_version_last_updated, latest_version, latest_version_last_updated, provider FROM programs WHERE name = ?"#;
+        let sql = r"SELECT name, current_version, current_version_last_updated, latest_version, latest_version_last_updated, provider FROM programs WHERE name = ?";
         let row =
             sqlx::query_as::<_, (String, String, NaiveDateTime, String, NaiveDateTime, String)>(
                 sql,
@@ -82,7 +82,7 @@ impl Db {
         // Determine the provider type and fetch additional data if needed
         let provider = match provider.as_str() {
             "github" => {
-                let sql = r#"SELECT repository FROM github_programs WHERE name = ?"#;
+                let sql = r"SELECT repository FROM github_programs WHERE name = ?";
                 match sqlx::query_as::<_, (String,)>(sql)
                     .bind(&name)
                     .fetch_optional(&self.pool)
@@ -110,7 +110,7 @@ impl Db {
     /// Retrieve all programs from the database.
     pub async fn get_all_programs(&self) -> Result<Vec<Program>> {
         // Retrieve all programs
-        let sql = r#"SELECT name, current_version, current_version_last_updated, latest_version, latest_version_last_updated, provider FROM programs"#;
+        let sql = r"SELECT name, current_version, current_version_last_updated, latest_version, latest_version_last_updated, provider FROM programs";
         let rows = sqlx::query_as::<
             _,
             (String, String, NaiveDateTime, String, NaiveDateTime, String),
@@ -130,7 +130,7 @@ impl Db {
         {
             let provider = match provider.as_str() {
                 "github" => {
-                    let sql = r#"SELECT repository FROM github_programs WHERE name = ?"#;
+                    let sql = r"SELECT repository FROM github_programs WHERE name = ?";
                     match sqlx::query_as::<_, (String,)>(sql)
                         .bind(&name)
                         .fetch_optional(&self.pool)

@@ -12,7 +12,7 @@ impl Db {
         &self,
         update_check: &UpdateCheckHistoryEntry,
     ) -> Result<()> {
-        let sql = r#"INSERT INTO update_check_history (date, type, updates_available, programs) VALUES (?, ?, ?, ?)"#;
+        let sql = r"INSERT INTO update_check_history (date, type, updates_available, programs) VALUES (?, ?, ?, ?)";
         sqlx::query(sql)
             .bind(update_check.date)
             .bind(update_check.r#type.identifier())
@@ -27,7 +27,7 @@ impl Db {
     pub async fn get_latest_update_check_from_history(
         &self,
     ) -> Result<Option<UpdateCheckHistoryEntry>> {
-        let sql = r#"SELECT date, type, updates_available, programs FROM update_check_history ORDER BY date DESC LIMIT 1"#;
+        let sql = r"SELECT date, type, updates_available, programs FROM update_check_history ORDER BY date DESC LIMIT 1";
         if let Some((date, r#type, updates_available, programs)) =
             sqlx::query_as::<_, (NaiveDateTime, String, u32, String)>(sql)
                 .fetch_optional(&self.pool)
@@ -48,7 +48,7 @@ impl Db {
         &self,
         max_entries: Option<u32>,
     ) -> Result<Vec<UpdateCheckHistoryEntry>> {
-        let sql = r#"SELECT date, type, updates_available, programs FROM update_check_history ORDER BY date DESC LIMIT ?"#;
+        let sql = r"SELECT date, type, updates_available, programs FROM update_check_history ORDER BY date DESC LIMIT ?";
         let update_checks = sqlx::query_as::<_, (NaiveDateTime, String, u32, String)>(sql)
             .bind(max_entries.unwrap_or(100))
             .fetch_all(&self.pool)
