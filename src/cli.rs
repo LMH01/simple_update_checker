@@ -46,6 +46,8 @@ pub enum Command {
     Update(UpdateArgs),
     #[command(about = "Show the history of performed updates.")]
     UpdateHistory(UpdateHistoryArgs),
+    #[command(about = "Show the history of performed updates checks.")]
+    UpdateCheckHistory(UpdateCheckHistoryArgs),
     #[command{
         about = "Periodically check all programs for updates.",
         long_about = "Periodically check all programs for updates. Sends a push notification when updates are found and the ntfy.sh topic is configured."
@@ -124,7 +126,18 @@ pub struct UpdateHistoryArgs {
     #[arg(
         short,
         long,
-        help = "How many entries should me show at max.",
+        help = "How many entries should be shown at max.",
+        default_value = "20"
+    )]
+    pub max_entries: u32,
+}
+
+#[derive(Parser, Debug, Clone)]
+pub struct UpdateCheckHistoryArgs {
+    #[arg(
+        short,
+        long,
+        help = "How many entries should be shown at max.",
         default_value = "20"
     )]
     pub max_entries: u32,

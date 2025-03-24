@@ -5,7 +5,7 @@ use tabled::Table;
 
 use crate::{
     DbConfig, Identifier, UpdateCheckType, UpdateHistoryEntry,
-    cli::{CheckArgs, RemoveProgramArgs, UpdateArgs, UpdateHistoryArgs},
+    cli::{CheckArgs, RemoveProgramArgs, UpdateArgs, UpdateCheckHistoryArgs, UpdateHistoryArgs},
     db::Db,
     update_check,
 };
@@ -125,6 +125,24 @@ pub async fn update_history(db_config: DbConfig, update_history_args: UpdateHist
     println!(
         "Showing the latest {} performed updates:\n(Newest update at the bottom)\n",
         update_history_args.max_entries
+    );
+    let table = Table::new(updates);
+    println!("{}\n", table);
+}
+
+pub async fn update_check_history(
+    db_config: DbConfig,
+    update_check_history_args: UpdateCheckHistoryArgs,
+) {
+    let db = Db::connect(&db_config.db_path).await.unwrap();
+    let mut updates = db
+        .get_all_update_checks(Some(update_check_history_args.max_entries))
+        .await
+        .unwrap();
+    updates.reverse();
+    println!(
+        "Showing the latest {} performed update checks:\n(Newest update check at the bottom)\n",
+        update_check_history_args.max_entries
     );
     let table = Table::new(updates);
     println!("{}\n", table);

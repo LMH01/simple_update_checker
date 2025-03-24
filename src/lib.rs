@@ -147,9 +147,13 @@ impl From<DbArgs> for DbConfig {
 /// Represents a single update check.
 #[derive(FromRow, Debug, PartialEq, Tabled)]
 pub struct UpdateCheckHistoryEntry {
+    #[tabled(rename = "Date", display("format_datetime"))]
     pub date: NaiveDateTime,
+    #[tabled(rename = "Type")]
     pub r#type: UpdateCheckType,
+    #[tabled(rename = "Updates available")]
     pub updates_available: u32,
+    #[tabled(rename = "Programs")]
     pub programs: String,
 }
 

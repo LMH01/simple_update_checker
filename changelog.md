@@ -3,6 +3,7 @@
 ## v1.4.0
 
 - number of available updates and programs for which updates are available are now stored in database in update_check_history table
+- added subcommand `update-check-history` that can be used to show the history of performed update checks
 
 ## v1.3.0
 
