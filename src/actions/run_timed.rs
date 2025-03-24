@@ -164,7 +164,7 @@ async fn send_update_notification(
                 }
             }
             Err(e) => {
-                // notification was not sent, so we don't mark the notifications as sent
+                // error while sending notifications, so we don't mark the notifications as sent
                 anyhow::bail!(e);
             }
         }
