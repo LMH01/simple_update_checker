@@ -89,7 +89,11 @@ pub async fn check_for_updates(
             // if update check was performed manually we don't want so sent a notification when timed mode is run
             // so we set notification sent to true
             if update_check_type == UpdateCheckType::Manual {
-                db.set_notification_sent(&program.name, true).await?;
+                if let Some(check_args) = &check_args {
+                    if !check_args.allow_notification {
+                        db.set_notification_sent(&program.name, true).await?;
+                    }
+                }
             }
 
             programs_with_available_updates.push(program);
@@ -105,7 +109,11 @@ pub async fn check_for_updates(
             // if update check was performed manually we don't want so sent a notification when timed mode is run
             // so we set notification sent to true
             if update_check_type == UpdateCheckType::Manual {
-                db.set_notification_sent(&program.name, true).await?;
+                if let Some(check_args) = &check_args {
+                    if !check_args.allow_notification {
+                        db.set_notification_sent(&program.name, true).await?;
+                    }
+                }
             }
 
             programs_with_available_updates.push(program);
