@@ -1,7 +1,7 @@
 use anyhow::Result;
 use sqlx::{SqlitePool, sqlite::SqliteConnectOptions};
 
-mod programs;
+mod program;
 mod update_check_history;
 mod update_history;
 
