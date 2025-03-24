@@ -90,6 +90,7 @@
             pkg-config
             openssl
             sqlx-cli
+            sqlitestudio
           ];
         };
       });
