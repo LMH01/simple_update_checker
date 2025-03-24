@@ -50,7 +50,7 @@
 
         simple_update_checker = craneLib.buildPackage (commonArgs // {
           cargoArtifacts = craneLib.buildDepsOnly commonArgs;
-          
+
           doCheck = false;
 
           # Additional environment variables or build phases/hooks can be set
@@ -80,6 +80,9 @@
           # see https://discourse.nixos.org/t/rust-src-not-found-and-other-misadventures-of-developing-rust-on-nixos/11570/3?u=samuela. for more details.
           RUST_SRC_PATH = "${pkgs.rust.packages.stable.rustPlatform.rustLibSrc}";
 
+          LLVM_COV = "${pkgs.rustc.llvmPackages.llvm}/bin/llvm-cov";
+          LLVM_PROFDATA = "${pkgs.rustc.llvmPackages.llvm}/bin/llvm-profdata";
+
           # Extra inputs can be added here; cargo and rustc are provided by default.
           packages = with pkgs; [
             cargo
@@ -87,6 +90,7 @@
             rustfmt
             rustc
             clippy
+            cargo-llvm-cov
             pkg-config
             openssl
             sqlx-cli
