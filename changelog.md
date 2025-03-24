@@ -12,6 +12,8 @@
           Set this flag to not mark the update as seen and to make the notification get sent when run-timed mode is used the next time.
 ```
 
+- performed updates are now stored in the database
+
 ## v1.2.1
 
 - fixed date column showing milliseconds in 'list-programs' command
