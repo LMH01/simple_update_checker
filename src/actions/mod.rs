@@ -4,7 +4,7 @@ use sqlx::types::chrono::Utc;
 use tabled::Table;
 
 use crate::{
-    DbConfig, Identifier, UpdateCheckType,
+    DbConfig, Identifier, UpdateCheckType, UpdateHistoryEntry,
     cli::{CheckArgs, RemoveProgramArgs, UpdateArgs},
     db::ProgramDb,
     update_check,
@@ -99,6 +99,14 @@ pub async fn update(db_config: DbConfig, update_args: UpdateArgs) {
         &program.latest_version,
         Utc::now().naive_utc(),
     )
+    .await
+    .unwrap();
+    db.insert_performed_update(&UpdateHistoryEntry {
+        time: Utc::now().naive_utc(),
+        name: program.name.clone(),
+        current_version: program.current_version,
+        updated_to: program.latest_version.clone(),
+    })
     .await
     .unwrap();
     println!(
