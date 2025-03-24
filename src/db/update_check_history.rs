@@ -153,4 +153,44 @@ mod tests {
 
         assert_eq!(vec![entry, entry2, entry3], res);
     }
+
+    #[sqlx::test]
+    fn test_db_get_all_update_checks_limited_returns(pool: SqlitePool) {
+        let db = tests::db(pool);
+        let entry = UpdateCheckHistoryEntry {
+            date: NaiveDateTime::new(
+                NaiveDate::parse_from_str("12.03.2025", "%d.%m.%Y").unwrap(),
+                NaiveTime::parse_from_str("13:45:00", "%H:%M:%S").unwrap(),
+            ),
+            r#type: UpdateCheckType::Manual,
+            updates_available: 0,
+            programs: "".to_string(),
+        };
+        let entry2 = UpdateCheckHistoryEntry {
+            date: NaiveDateTime::new(
+                NaiveDate::parse_from_str("13.03.2025", "%d.%m.%Y").unwrap(),
+                NaiveTime::parse_from_str("13:45:00", "%H:%M:%S").unwrap(),
+            ),
+            r#type: UpdateCheckType::Manual,
+            updates_available: 0,
+            programs: "".to_string(),
+        };
+        let entry3 = UpdateCheckHistoryEntry {
+            date: NaiveDateTime::new(
+                NaiveDate::parse_from_str("14.03.2025", "%d.%m.%Y").unwrap(),
+                NaiveTime::parse_from_str("13:45:00", "%H:%M:%S").unwrap(),
+            ),
+            r#type: UpdateCheckType::Manual,
+            updates_available: 0,
+            programs: "".to_string(),
+        };
+        db.insert_update_check_history(&entry).await.unwrap();
+        db.insert_update_check_history(&entry2).await.unwrap();
+        db.insert_update_check_history(&entry3).await.unwrap();
+
+        let mut res = db.get_all_update_checks(Some(2)).await.unwrap();
+        res.reverse();
+
+        assert_eq!(vec![entry2, entry3], res);
+    }
 }
