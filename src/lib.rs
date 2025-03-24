@@ -3,7 +3,10 @@ use std::{fmt::Display, str::FromStr};
 use anyhow::Result;
 use cli::DbArgs;
 use config::Config;
-use sqlx::types::chrono::{NaiveDateTime, Utc};
+use sqlx::{
+    prelude::FromRow,
+    types::chrono::{NaiveDateTime, Utc},
+};
 use tabled::Tabled;
 
 pub mod actions;
@@ -190,4 +193,12 @@ impl FromStr for UpdateCheckType {
 pub struct NotificationInfo {
     pub sent: bool,
     pub sent_on: Option<NaiveDateTime>,
+}
+
+#[derive(FromRow, Debug, PartialEq)]
+pub struct UpdateHistoryEntry {
+    pub time: NaiveDateTime,
+    pub name: String,
+    pub current_version: String,
+    pub updated_to: String,
 }

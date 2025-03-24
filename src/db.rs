@@ -3,7 +3,10 @@ use std::str::FromStr;
 use anyhow::Result;
 use sqlx::{SqlitePool, sqlite::SqliteConnectOptions, types::chrono::NaiveDateTime};
 
-use crate::{Identifier, NotificationInfo, Program, Provider, UpdateCheck, UpdateCheckType};
+use crate::{
+    Identifier, NotificationInfo, Program, Provider, UpdateCheck, UpdateCheckType,
+    UpdateHistoryEntry,
+};
 
 pub struct ProgramDb {
     pub pool: SqlitePool,
@@ -278,6 +281,36 @@ impl ProgramDb {
         }
         Ok(None)
     }
+
+    /// Add an UpdateHistoryEntry to update_history.
+    pub async fn insert_performed_update(
+        &self,
+        update_history_entry: &UpdateHistoryEntry,
+    ) -> Result<()> {
+        let sql = r#"INSERT INTO update_history (time, name, current_version, updated_to) VALUES (?, ?, ?, ?)"#;
+        sqlx::query(sql)
+            .bind(update_history_entry.time)
+            .bind(&update_history_entry.name)
+            .bind(&update_history_entry.current_version)
+            .bind(&update_history_entry.updated_to)
+            .execute(&self.pool)
+            .await?;
+
+        Ok(())
+    }
+
+    pub async fn get_all_updates(
+        &self,
+        max_entries: Option<u32>,
+    ) -> Result<Vec<UpdateHistoryEntry>> {
+        let sql = r#"SELECT time, name, current_version, updated_to FROM update_history ORDER BY time ASC LIMIT ?"#;
+        let entries = sqlx::query_as::<_, UpdateHistoryEntry>(sql)
+            .bind(max_entries.unwrap_or(100))
+            .fetch_all(&self.pool)
+            .await?;
+
+        Ok(entries)
+    }
 }
 
 #[cfg(test)]
@@ -289,7 +322,7 @@ mod tests {
     };
 
     use crate::{
-        UpdateCheck, UpdateCheckType,
+        UpdateCheck, UpdateCheckType, UpdateHistoryEntry,
         db::{Program, Provider},
     };
 
@@ -640,5 +673,102 @@ mod tests {
         let program_db = program_db(pool);
         let res = program_db.get_notification_info("name").await.unwrap();
         assert!(res.is_none())
+    }
+
+    #[sqlx::test]
+    fn test_program_db_insert_performed_update(pool: SqlitePool) {
+        let program_db = program_db(pool);
+        let entry = UpdateHistoryEntry {
+            time: NaiveDateTime::new(
+                NaiveDate::parse_from_str("12.03.2025", "%d.%m.%Y").unwrap(),
+                NaiveTime::parse_from_str("13:45:00", "%H:%M:%S").unwrap(),
+            ),
+            name: "alpha_tui".to_string(),
+            current_version: "1.0.0".to_string(),
+            updated_to: "1.1.0".to_string(),
+        };
+        program_db.insert_performed_update(&entry).await.unwrap();
+
+        let res = program_db.get_all_updates(None).await.unwrap();
+
+        assert_eq!(entry, res[0]);
+    }
+
+    #[sqlx::test]
+    fn test_program_db_get_all_updates(pool: SqlitePool) {
+        let program_db = program_db(pool);
+        let entry = UpdateHistoryEntry {
+            time: NaiveDateTime::new(
+                NaiveDate::parse_from_str("12.03.2025", "%d.%m.%Y").unwrap(),
+                NaiveTime::parse_from_str("13:45:00", "%H:%M:%S").unwrap(),
+            ),
+            name: "alpha_tui".to_string(),
+            current_version: "1.0.0".to_string(),
+            updated_to: "1.1.0".to_string(),
+        };
+        let entry2 = UpdateHistoryEntry {
+            time: NaiveDateTime::new(
+                NaiveDate::parse_from_str("13.03.2025", "%d.%m.%Y").unwrap(),
+                NaiveTime::parse_from_str("13:45:00", "%H:%M:%S").unwrap(),
+            ),
+            name: "alpha_tui".to_string(),
+            current_version: "1.1.0".to_string(),
+            updated_to: "1.2.0".to_string(),
+        };
+        let entry3 = UpdateHistoryEntry {
+            time: NaiveDateTime::new(
+                NaiveDate::parse_from_str("14.03.2025", "%d.%m.%Y").unwrap(),
+                NaiveTime::parse_from_str("13:45:00", "%H:%M:%S").unwrap(),
+            ),
+            name: "alpha_tui".to_string(),
+            current_version: "1.2.0".to_string(),
+            updated_to: "1.3.0".to_string(),
+        };
+        program_db.insert_performed_update(&entry).await.unwrap();
+        program_db.insert_performed_update(&entry2).await.unwrap();
+        program_db.insert_performed_update(&entry3).await.unwrap();
+
+        let res = program_db.get_all_updates(None).await.unwrap();
+
+        assert_eq!(vec![entry, entry2, entry3], res);
+    }
+
+    #[sqlx::test]
+    fn test_program_db_get_all_updates_limited_returns(pool: SqlitePool) {
+        let program_db = program_db(pool);
+        let entry = UpdateHistoryEntry {
+            time: NaiveDateTime::new(
+                NaiveDate::parse_from_str("12.03.2025", "%d.%m.%Y").unwrap(),
+                NaiveTime::parse_from_str("13:45:00", "%H:%M:%S").unwrap(),
+            ),
+            name: "alpha_tui".to_string(),
+            current_version: "1.0.0".to_string(),
+            updated_to: "1.1.0".to_string(),
+        };
+        let entry2 = UpdateHistoryEntry {
+            time: NaiveDateTime::new(
+                NaiveDate::parse_from_str("13.03.2025", "%d.%m.%Y").unwrap(),
+                NaiveTime::parse_from_str("13:45:00", "%H:%M:%S").unwrap(),
+            ),
+            name: "alpha_tui".to_string(),
+            current_version: "1.1.0".to_string(),
+            updated_to: "1.2.0".to_string(),
+        };
+        let entry3 = UpdateHistoryEntry {
+            time: NaiveDateTime::new(
+                NaiveDate::parse_from_str("14.03.2025", "%d.%m.%Y").unwrap(),
+                NaiveTime::parse_from_str("13:45:00", "%H:%M:%S").unwrap(),
+            ),
+            name: "alpha_tui".to_string(),
+            current_version: "1.2.0".to_string(),
+            updated_to: "1.3.0".to_string(),
+        };
+        program_db.insert_performed_update(&entry).await.unwrap();
+        program_db.insert_performed_update(&entry2).await.unwrap();
+        program_db.insert_performed_update(&entry3).await.unwrap();
+
+        let res = program_db.get_all_updates(Some(2)).await.unwrap();
+
+        assert_eq!(vec![entry, entry2], res);
     }
 }
