@@ -132,10 +132,13 @@ async fn send_update_notification(
                 tracing::debug!(
                     "Not adding {} to notification as notification was already sent on {}",
                     program.name,
-                    sent_on,
+                    crate::format_datetime(&sent_on),
                 )
             } else {
-                anyhow::bail!("notification_sent_on not set when it should be set")
+                tracing::debug!(
+                    "Not adding {} to notifications as program was manually checked for updates",
+                    program.name
+                )
             }
         } else {
             message.push_str(&format!(
@@ -145,19 +148,25 @@ async fn send_update_notification(
             programs_with_notifications_to_sent.push(program);
         }
     }
-    tracing::info!("Sending push notification to topic {}", topic);
-    match notification::send_update_notification(topic, &message).await {
-        Ok(()) => {
-            // mark programs with updates available as notification sent
-            for program in programs_with_notifications_to_sent {
-                db.set_notification_sent(&program.name, true).await?;
-                db.set_notification_sent_on(&program.name, Some(Utc::now().naive_utc()))
-                    .await?;
+    if programs_with_notifications_to_sent.is_empty() {
+        tracing::debug!(
+            "Not sending push notifications as no updates are available for which notifications where not already sent"
+        );
+    } else {
+        tracing::info!("Sending push notification to topic {}", topic);
+        match notification::send_update_notification(topic, &message).await {
+            Ok(()) => {
+                // mark programs with updates available as notification sent
+                for program in programs_with_notifications_to_sent {
+                    db.set_notification_sent(&program.name, true).await?;
+                    db.set_notification_sent_on(&program.name, Some(Utc::now().naive_utc()))
+                        .await?;
+                }
             }
-        }
-        Err(e) => {
-            // notification was not sent, so we don't mark the notifications as sent
-            anyhow::bail!(e);
+            Err(e) => {
+                // notification was not sent, so we don't mark the notifications as sent
+                anyhow::bail!(e);
+            }
         }
     }
     Ok(())

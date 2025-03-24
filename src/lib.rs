@@ -53,7 +53,7 @@ impl Program {
     }
 }
 
-fn format_datetime(value: &NaiveDateTime) -> String {
+pub fn format_datetime(value: &NaiveDateTime) -> String {
     value.format("%Y-%m-%d %H:%M:%S").to_string()
 }
 
