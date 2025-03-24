@@ -337,7 +337,7 @@ impl Db {
         &self,
         max_entries: Option<u32>,
     ) -> Result<Vec<UpdateHistoryEntry>> {
-        let sql = r#"SELECT date, name, old_version, updated_to FROM update_history ORDER BY date ASC LIMIT ?"#;
+        let sql = r#"SELECT date, name, old_version, updated_to FROM update_history ORDER BY date DESC LIMIT ?"#;
         let entries = sqlx::query_as::<_, UpdateHistoryEntry>(sql)
             .bind(max_entries.unwrap_or(100))
             .fetch_all(&self.pool)
@@ -792,7 +792,8 @@ mod tests {
         db.insert_performed_update(&entry2).await.unwrap();
         db.insert_performed_update(&entry3).await.unwrap();
 
-        let res = db.get_all_updates(None).await.unwrap();
+        let mut res = db.get_all_updates(None).await.unwrap();
+        res.reverse();
 
         assert_eq!(vec![entry, entry2, entry3], res);
     }
@@ -831,8 +832,9 @@ mod tests {
         db.insert_performed_update(&entry2).await.unwrap();
         db.insert_performed_update(&entry3).await.unwrap();
 
-        let res = db.get_all_updates(Some(2)).await.unwrap();
+        let mut res = db.get_all_updates(Some(2)).await.unwrap();
+        res.reverse();
 
-        assert_eq!(vec![entry, entry2], res);
+        assert_eq!(vec![entry2, entry3], res);
     }
 }
