@@ -6,8 +6,7 @@ use tabled::Table;
 use tokio::signal::unix::{SignalKind, signal};
 
 use crate::{
-    DbConfig, Program, UpdateCheckType, cli::RunTimedArgs, db::Db, notification,
-    update_check,
+    DbConfig, Program, UpdateCheckType, cli::RunTimedArgs, db::Db, notification, update_check,
 };
 
 pub async fn run(
@@ -114,11 +113,7 @@ async fn check_for_updates(
     Ok(())
 }
 
-async fn send_update_notification(
-    db: &Db,
-    topic: &str,
-    programs: &Vec<Program>,
-) -> Result<()> {
+async fn send_update_notification(db: &Db, topic: &str, programs: &Vec<Program>) -> Result<()> {
     let mut message = String::new();
     let mut programs_with_notifications_to_sent = Vec::new();
     for program in programs {
