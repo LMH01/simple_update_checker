@@ -195,10 +195,14 @@ pub struct NotificationInfo {
     pub sent_on: Option<NaiveDateTime>,
 }
 
-#[derive(FromRow, Debug, PartialEq)]
+#[derive(FromRow, Debug, PartialEq, Tabled)]
 pub struct UpdateHistoryEntry {
-    pub time: NaiveDateTime,
+    #[tabled(rename = "Date", display("format_datetime"))]
+    pub date: NaiveDateTime,
+    #[tabled(rename = "Name")]
     pub name: String,
-    pub current_version: String,
+    #[tabled(rename = "Old version")]
+    pub old_version: String,
+    #[tabled(rename = "Updated to")]
     pub updated_to: String,
 }
