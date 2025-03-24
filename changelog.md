@@ -3,6 +3,7 @@
 ## v1.3.0
 
 - notifications for new versions are now only sent once per new version
+- notifications are no longer sent in run-timed when the update check for the same version was previously performed manually
 
 ## v1.2.1
 

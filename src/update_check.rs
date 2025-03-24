@@ -85,6 +85,13 @@ pub async fn check_for_updates(
                     program.name, program.current_version, program.latest_version
                 );
             }
+
+            // if update check was performed manually we don't want so sent a notification when timed mode is run
+            // so we set notification sent to true
+            if update_check_type == UpdateCheckType::Manual {
+                db.set_notification_sent(&program.name, true).await?;
+            }
+
             programs_with_available_updates.push(program);
         } else if latest_version != program.current_version {
             // newest latest_version already exists in database but program has not been updated yet
@@ -94,6 +101,13 @@ pub async fn check_for_updates(
                     program.name, program.current_version, program.latest_version
                 );
             }
+
+            // if update check was performed manually we don't want so sent a notification when timed mode is run
+            // so we set notification sent to true
+            if update_check_type == UpdateCheckType::Manual {
+                db.set_notification_sent(&program.name, true).await?;
+            }
+
             programs_with_available_updates.push(program);
         } else if print_messages {
             println!("{}: no update found", program.name);
