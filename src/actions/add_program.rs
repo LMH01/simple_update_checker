@@ -35,7 +35,7 @@ pub async fn add_program_github(
     .await
     .unwrap();
 
-    db.add_program(&program).await.unwrap();
+    db.insert_program(&program).await.unwrap();
     println!(
         "Program {} successfully added to database!",
         &add_program_args.name

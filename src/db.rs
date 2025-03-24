@@ -29,7 +29,7 @@ impl ProgramDb {
     }
 
     /// Add a program to the database.
-    pub async fn add_program(&self, program: &Program) -> Result<()> {
+    pub async fn insert_program(&self, program: &Program) -> Result<()> {
         // insert into programs table
         let sql = r#"INSERT INTO programs ('name','current_version', 'current_version_last_updated', 'latest_version', 'latest_version_last_updated' , 'provider') VALUES (?, ?, ?, ?, ?, ?)"#;
         let _ = sqlx::query(sql)
@@ -363,7 +363,7 @@ mod tests {
             latest_version: "0.1.0".to_string(),
             provider: Provider::Github("LMH01/test_program".to_string()),
         };
-        program_db.add_program(&program).await.unwrap();
+        program_db.insert_program(&program).await.unwrap();
         let res = program_db.get_program(&program.name).await.unwrap();
         assert_eq!(Some(program), res);
         let res = program_db.get_program(&program2.name).await.unwrap();
@@ -387,7 +387,7 @@ mod tests {
             ),
             provider: Provider::Github("LMH01/simple_update_checker".to_string()),
         };
-        program_db.add_program(&program).await.unwrap();
+        program_db.insert_program(&program).await.unwrap();
         program_db.remove_program(&program.name).await.unwrap();
         let res = program_db.get_program(&program.name).await.unwrap();
         assert_eq!(res, None);
@@ -424,8 +424,8 @@ mod tests {
             ),
             provider: Provider::Github("LMH01/test_program".to_string()),
         };
-        program_db.add_program(&program).await.unwrap();
-        program_db.add_program(&program2).await.unwrap();
+        program_db.insert_program(&program).await.unwrap();
+        program_db.insert_program(&program2).await.unwrap();
         let mut should = vec![program, program2];
         should.sort_by(|a, b| a.name.cmp(&b.name));
         let mut res = program_db.get_all_programs().await.unwrap();
@@ -454,7 +454,7 @@ mod tests {
             NaiveDate::parse_from_str("01.01.2025", "%d.%m.%Y").unwrap(),
             NaiveTime::parse_from_str("00:00:00", "%H:%M:%S").unwrap(),
         );
-        program_db.add_program(&program).await.unwrap();
+        program_db.insert_program(&program).await.unwrap();
         program_db
             .update_latest_version(
                 &program.name,
@@ -494,7 +494,7 @@ mod tests {
             NaiveDate::parse_from_str("01.01.2025", "%d.%m.%Y").unwrap(),
             NaiveTime::parse_from_str("00:00:00", "%H:%M:%S").unwrap(),
         );
-        program_db.add_program(&program).await.unwrap();
+        program_db.insert_program(&program).await.unwrap();
         program_db
             .update_current_version(&program.name, "0.2.0", new_current_version_last_updated)
             .await
@@ -573,8 +573,8 @@ mod tests {
             latest_version: "0.1.0".to_string(),
             provider: Provider::Github("LMH01/test_program".to_string()),
         };
-        program_db.add_program(&program).await.unwrap();
-        program_db.add_program(&program2).await.unwrap();
+        program_db.insert_program(&program).await.unwrap();
+        program_db.insert_program(&program2).await.unwrap();
         program_db
             .set_notification_sent("simple_update_checker", true)
             .await
@@ -626,8 +626,8 @@ mod tests {
             latest_version: "0.1.0".to_string(),
             provider: Provider::Github("LMH01/test_program".to_string()),
         };
-        program_db.add_program(&program).await.unwrap();
-        program_db.add_program(&program2).await.unwrap();
+        program_db.insert_program(&program).await.unwrap();
+        program_db.insert_program(&program2).await.unwrap();
 
         let test_date_time = NaiveDateTime::new(
             NaiveDate::parse_from_str("10.03.2025", "%d.%m.%Y").unwrap(),
