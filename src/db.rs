@@ -53,9 +53,17 @@ impl ProgramDb {
     }
 
     pub async fn remove_program(&self, name: &str) -> Result<()> {
-        // Delete from provider-specific table first
-        let sql = r#"DELETE FROM github_programs WHERE name = ?"#;
-        sqlx::query(sql).bind(name).execute(&self.pool).await?;
+        // First determine what provider the program belongs to
+        let program = match self.get_program(name).await? {
+            Some(program) => program,
+            None => anyhow::bail!("Program named {name} does not exist"),
+        };
+        match program.provider {
+            Provider::Github(_) => {
+                let sql = r#"DELETE FROM github_programs WHERE name = ?"#;
+                sqlx::query(sql).bind(name).execute(&self.pool).await?;
+            }
+        }
         // Delete from main programs table
         let sql = r#"DELETE FROM programs WHERE name = ?"#;
         sqlx::query(sql).bind(name).execute(&self.pool).await?;
