@@ -212,7 +212,7 @@ impl Db {
     }
 
     pub async fn insert_update_check(&self, update_check: &UpdateCheck) -> Result<()> {
-        let sql = r#"INSERT INTO update_checks (time, type) VALUES (?, ?)"#;
+        let sql = r#"INSERT INTO update_checks (date, type) VALUES (?, ?)"#;
         sqlx::query(sql)
             .bind(update_check.time)
             .bind(update_check.r#type.identifier())
@@ -223,7 +223,7 @@ impl Db {
     }
 
     pub async fn get_latest_update_check(&self) -> Result<Option<UpdateCheck>> {
-        let sql = r#"SELECT time, type FROM update_checks ORDER BY time DESC LIMIT 1"#;
+        let sql = r#"SELECT date, type FROM update_checks ORDER BY date DESC LIMIT 1"#;
         if let Some(row) = sqlx::query_as::<_, (NaiveDateTime, String)>(sql)
             .fetch_optional(&self.pool)
             .await?
