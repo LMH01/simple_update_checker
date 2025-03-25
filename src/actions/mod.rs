@@ -44,8 +44,8 @@ pub async fn list_programs(db_config: DbConfig) {
 
     if let Some(last_update_check) = db.get_latest_update_check_from_history().await.unwrap() {
         println!(
-            "Last update check performed on: (UTC) {} ({} update check)",
-            last_update_check.date.format("%Y-%m-%d %H:%M:%S"),
+            "Last update check performed on: {} ({} update check)",
+            crate::format_datetime(&last_update_check.date),
             last_update_check.r#type.identifier()
         );
     } else {

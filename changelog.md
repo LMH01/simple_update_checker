@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.6.0
+
+- time displayed in all commands is no longer displayed as utc, instead the local time zone is now used
+
 ## v1.5.0
 
 - latest program version is now included in programs column in update check history

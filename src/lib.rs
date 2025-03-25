@@ -5,7 +5,7 @@ use cli::DbArgs;
 use config::Config;
 use sqlx::{
     prelude::FromRow,
-    types::chrono::{NaiveDateTime, Utc},
+    types::chrono::{Local, NaiveDateTime, TimeZone, Utc},
 };
 use tabled::Tabled;
 
@@ -57,8 +57,14 @@ impl Program {
 }
 
 #[must_use]
+/// Formats the date time in the following format: %Y-%m-%d %H:%M:%S
+/// Also transforms the time value to the local time zone (for that it is assumed that NaiveDateTime provided to this function is in UTC)
 pub fn format_datetime(value: &NaiveDateTime) -> String {
-    value.format("%Y-%m-%d %H:%M:%S").to_string()
+    let datetime_utc = Utc.from_utc_datetime(value);
+
+    let local_time = datetime_utc.with_timezone(&Local);
+
+    local_time.format("%Y-%m-%d %H:%M:%S").to_string()
 }
 
 /// Returns an identifier for this type.
