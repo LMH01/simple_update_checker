@@ -169,7 +169,7 @@ impl UpdateCheckHistoryEntry {
             updates_available: programs_with_updates.len() as u32,
             programs: programs_with_updates
                 .into_iter()
-                .map(|f| f.name)
+                .map(|f| format!("{} ({})", f.name, f.latest_version))
                 .collect::<Vec<String>>()
                 .join(", "),
         }

@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.5.0
+
+- latest program version is now included in programs column in update check history
+
 ## v1.4.0
 
 - number of available updates and programs for which updates are available are now stored in database in update_check_history table
