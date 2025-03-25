@@ -9,11 +9,14 @@ use crate::{
     DbConfig, Program, UpdateCheckType, cli::RunTimedArgs, db::Db, notification, update_check,
 };
 
+const VERSION: &str = env!("CARGO_PKG_VERSION");
+
 pub async fn run(
     db_config: DbConfig,
     run_timed_args: RunTimedArgs,
     github_access_token: Option<String>,
 ) {
+    tracing::info!("simple_update_checker version {VERSION} starting in timed mode");
     // check connection with database before starting thread
     tracing::info!("Checking database connection");
     match Db::connect(&db_config.db_path).await {
@@ -23,7 +26,8 @@ pub async fn run(
         }
         Ok(db) => {
             tracing::info!("Database connection successful. Currently watched programs:");
-            let programs = db.get_all_programs().await.unwrap();
+            let mut programs = db.get_all_programs().await.unwrap();
+            programs.sort_by(|a, b| a.name.cmp(&b.name));
             let table = Table::new(programs);
             tracing::info!("\n{table}");
         }

@@ -1,5 +1,10 @@
 # Changelog
 
+## v1.7.0
+
+- program version is now printed when `run-timed` is starting
+- table that is printed when `run-timed` is starting is now sorted correctly
+
 ## v1.6.0
 
 - time displayed in all commands is no longer displayed as utc, instead the local time zone is now used
