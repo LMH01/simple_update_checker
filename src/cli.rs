@@ -1,5 +1,7 @@
 use clap::{Parser, Subcommand};
 
+use crate::config::ConfigFile;
+
 #[derive(Parser, Debug)]
 #[command(
     author = "LMH01",
@@ -21,6 +23,18 @@ pub struct Cli {
         env
     )]
     pub github_access_token: Option<String>,
+}
+
+impl Cli {
+
+    /// Applies the values set in the provided config file.
+    /// 
+    /// If a value is defined in the cli and in the config file, the value provided by the cli will take precedence.
+    pub fn apply_config_file(&mut self, config_file: ConfigFile) {
+        if self.github_access_token.is_none() && config_file.github_access_token.is_some() {
+            self.github_access_token = config_file.github_access_token;
+        }
+    }
 }
 
 #[derive(Subcommand, Clone, Debug)]

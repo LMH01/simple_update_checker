@@ -2,7 +2,7 @@ use std::{fmt::Display, str::FromStr, vec};
 
 use anyhow::Result;
 use cli::DbArgs;
-use config::Config;
+use config::ConfigFile;
 use sqlx::{
     prelude::FromRow,
     types::chrono::{Local, NaiveDateTime, TimeZone, Utc},
@@ -103,7 +103,7 @@ impl DbConfig {
     /// If the cli argument is set, its value will be used instead of the value from the config.
     pub fn try_create(db_args: DbArgs) -> Result<Self> {
         // try to load config at ~/.config/simple_update_checker/config.toml
-        let db_config = match Config::try_parse() {
+        let db_config = match ConfigFile::try_parse() {
             Err(e) => {
                 println!(
                     "Warning: unable to parse config at ~/.config/simple_update_checker/config.toml : {e}"

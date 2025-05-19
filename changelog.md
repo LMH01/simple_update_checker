@@ -4,6 +4,7 @@
 
 - program version is now printed when `run-timed` is starting
 - table that is printed when `run-timed` is starting is now sorted correctly
+- `github_access_token` can now be written into config file. If github access token is not submitted via cli or as environment variable, the value from the config file is used
 
 ## v1.6.0
 

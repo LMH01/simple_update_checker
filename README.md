@@ -120,9 +120,19 @@ If the cli option `--db-path` is set, it overrides the setting from the config f
 
 If the config file does not exist and `--db-path` is not set, `programs.db` will be created in your current directory.
 
+It is also possible to specify a github access token that should be used when no token is submitted as cli argument or as environment variable. For that add a line like this to the config file:
+
+```
+github_access_token = "<GITHUB_ACCESS_TOKEN>"
+```
+
+(replace `<GITHUB_ACESS_TOKEN>` with your token, including `{}`)
+
 ### Github API rate limiting
 
 If you are not authenticated against the Github API the rate limit is 60 requests per hour (which should be enough). To increase the rate limit to 5000 requests per hour create a personal access token [here](https://github.com/settings/personal-access-tokens) and provide it to the program with `--github-access-token <GITHUB_ACCESS_TOKEN>`.
+
+You can also configure the github access token in the config file. See [config-file](#config-file).
 
 ## Compile from source
 

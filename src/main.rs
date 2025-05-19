@@ -2,9 +2,7 @@ use std::env;
 
 use clap::Parser;
 use simple_update_checker::{
-    DbConfig,
-    actions::{self, add_program, run_timed},
-    cli::{Cli, Command, UpdateProviderAdd},
+    actions::{self, add_program, run_timed}, cli::{Cli, Command, UpdateProviderAdd}, config::ConfigFile, DbConfig
 };
 use tracing::Level;
 
@@ -16,7 +14,13 @@ async fn main() {
     // setup logging
     init_logger();
 
-    let cli = Cli::parse();
+    let mut cli = Cli::parse();
+
+    // apply values from config file to cli, when cli does not yet contain values defined in config file
+    match ConfigFile::try_parse() {
+        Ok(Some(config_file)) => cli.apply_config_file(config_file),
+        _ => (),
+    };
 
     let db_config = DbConfig::try_create(cli.db_args).unwrap();
 

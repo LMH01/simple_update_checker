@@ -4,15 +4,16 @@ use anyhow::Result;
 use directories::BaseDirs;
 use serde::{Deserialize, Serialize};
 
-#[derive(Serialize, Deserialize)]
-pub struct Config {
+#[derive(Debug, Serialize, Deserialize)]
+pub struct ConfigFile {
     /// Path where the config file was found.
     #[serde(skip)]
     pub path: String,
     pub db_path: String,
+    pub github_access_token: Option<String>,
 }
 
-impl Config {
+impl ConfigFile {
     /// Tries to load the config located at ~/.`config/simple_update_checker/config.toml`
     ///
     /// ## Returns
@@ -31,7 +32,7 @@ impl Config {
             return Ok(None);
         }
 
-        let mut config = toml::from_str::<Config>(&fs::read_to_string(&config_file)?)?;
+        let mut config = toml::from_str::<ConfigFile>(&fs::read_to_string(&config_file)?)?;
         config.path = config_file
             .as_path()
             .to_str()
