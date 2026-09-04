@@ -84,18 +84,19 @@
           LLVM_PROFDATA = "${pkgs.rustc.llvmPackages.llvm}/bin/llvm-profdata";
 
           # Extra inputs can be added here; cargo and rustc are provided by default.
-          packages = with pkgs; [
-            cargo
-            gcc
-            rustfmt
-            rustc
-            clippy
-            cargo-llvm-cov
-            pkg-config
-            openssl
-            sqlx-cli
-            sqlitestudio
-          ];
+            packages = with pkgs; [
+              cargo
+              gcc
+              rustfmt
+              rustc
+              clippy
+              cargo-llvm-cov
+              pkg-config
+              openssl
+              sqlx-cli
+              sqlitestudio
+              tailwindcss
+            ];
         };
       });
 }

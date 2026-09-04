@@ -6,7 +6,7 @@ use tabled::Table;
 use tokio::signal::unix::{SignalKind, signal};
 
 use crate::{
-    DbConfig, Program, UpdateCheckType, cli::RunTimedArgs, db::Db, notification, update_check,
+    DbConfig, Program, UpdateCheckType, cli::RunTimedArgs, db::Db, notification, update_check, web,
 };
 
 const VERSION: &str = env!("CARGO_PKG_VERSION");
@@ -32,6 +32,22 @@ pub async fn run(
             tracing::info!("\n{table}");
         }
     }
+
+    // Start the web server in the background
+    let db_pool = match Db::connect(&db_config.db_path).await {
+        Ok(db) => db.pool.clone(),
+        Err(e) => {
+            tracing::error!("Error while connecting to database for web server: {e}");
+            process::exit(1);
+        }
+    };
+
+    let web_port = run_timed_args.web_port;
+    tokio::spawn(async move {
+        if let Err(e) = web::run_server(db_pool, web_port).await {
+            tracing::error!("Web server error: {e}");
+        }
+    });
 
     spawn(db_config, run_timed_args, github_access_token);
 

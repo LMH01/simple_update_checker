@@ -27,7 +27,7 @@ impl Db {
 }
 
 #[cfg(test)]
-mod tests {
+pub mod tests {
 
     use sqlx::SqlitePool;
 

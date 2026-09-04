@@ -159,3 +159,10 @@ To setup the program using a docker container follow these steps:
 5. Start the docker container using `docker compose up -d`
 
 If you would like to add more programs stop the docker container with `docker compose down` and use the above command to add more programs. You can also use all other commands of the tool with this db.
+
+
+## TODO
+
+- [ ] Update readme to include information about new browser frontend feature when run-timed is used (e.g. how to configure, what can it do)
+- [ ] Do code review on llm generated code (basically most of this commit)
+    - [ ] make sure that all tracing calls are run with tracing:: and not with importing the macro

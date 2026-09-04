@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Update Checker Dashboard</title>
+    <link href="/assets/css/output.css" rel="stylesheet">
+</head>
+<body class="bg-gray-100 text-gray-900 font-sans">
+    <div class="container mx-auto px-4 py-8">
+        <header class="mb-8">
+            <h1 class="text-4xl font-bold text-gray-800">Simple Update Checker</h1>
+            <p class="text-gray-600 mt-2">Dashboard overview of monitored programs</p>
+        </header>
+
+        <main>
+            <div class="bg-white shadow-md rounded-lg overflow-hidden">
+                <table class="min-w-full leading-normal">
+                    <thead>
+                        <tr class="bg-gray-200 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                            <th class="px-5 py-3">Name</th>
+                            <th class="px-5 py-3">Current Version</th>
+                            <th class="px-5 py-3">Latest Version</th>
+                            <th class="px-5 py-3">Status</th>
+                            <th class="px-5 py-3">Last Checked</th>
+                            <th class="px-5 py-3">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for program in programs %}
+                        <tr class="border-b border-gray-200">
+                            <td class="px-5 py-5 text-sm">
+                                <p class="text-gray-900 whitespace-no-wrap font-medium">{{ program.name }}</p>
+                            </td>
+                            <td class="px-5 py-5 text-sm">
+                                <p class="text-gray-900 whitespace-no-wrap">{{ program.current_version }}</p>
+                            </td>
+                            <td class="px-5 py-5 text-sm">
+                                <p class="text-gray-900 whitespace-no-wrap">{{ program.latest_version }}</p>
+                            </td>
+                            <td class="px-5 py-5 text-sm">
+                                {% if program.has_update %}
+                                <span class="relative inline-block px-3 py-1 font-semibold text-red-900 leading-tight">
+                                    <span aria-hidden class="absolute inset-0 bg-red-200 opacity-50 rounded-full"></span>
+                                    <span class="relative text-xs">Update Available</span>
+                                </span>
+                                {% else %}
+                                <span class="relative inline-block px-3 py-1 font-semibold text-green-900 leading-tight">
+                                    <span aria-hidden class="absolute inset-0 bg-green-200 opacity-50 rounded-full"></span>
+                                    <span class="relative text-xs">Up to date</span>
+                                </span>
+                                {% endif %}
+                            </td>
+                            <td class="px-5 py-5 text-sm">
+                                <p class="text-gray-900 whitespace-no-wrap">{{ program.current_version_last_updated }}</p>
+                            </td>
+                            <td class="px-5 py-5 text-sm">
+                                {% if program.has_update %}
+                                <button
+                                    onclick="updateProgram('{{ program.name }}')"
+                                    class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded shadow"
+                                >
+                                    Update
+                                </button>
+                                {% else %}
+                                <span class="text-gray-400 italic">No actions</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </main>
+
+        <footer class="mt-12 text-center text-gray-500 text-sm">
+            <p>&copy; 2026 Simple Update Checker</p>
+        </footer>
+    </div>
+
+    <script>
+        async function updateProgram(name) {
+            try {
+                const response = await fetch(`/update/${name}`, {
+                    method: 'POST',
+                });
+
+                if (response.ok) {
+                    const result = await response.json();
+                    if (result.status === 'success') {
+                        alert('Program updated successfully!');
+                        location.reload();
+                    } else {
+                        alert('Error: ' + result.message);
+                    }
+                } else {
+                    const errorResult = await response.json();
+                    alert('Error: ' + errorResult.message);
+                }
+            } catch (error) {
+                alert('Failed to update program: ' + error.message);
+            }
+        }
+    </script>
+</body>
+</html>

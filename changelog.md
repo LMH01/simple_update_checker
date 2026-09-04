@@ -1,5 +1,10 @@
 # Changelog
 
+## v1.8.0
+
+- add basic web browser frontend that launches automatically, when the mode `run-timed` is used. Port can be configured using cli
+  - web browser frontend currently only supports showing what updates are available and marking a program as updated
+
 ## v1.7.0
 
 - program version is now printed when `run-timed` is starting

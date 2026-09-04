@@ -13,6 +13,7 @@ pub mod actions;
 pub mod cli;
 pub mod config;
 pub mod db;
+pub mod web;
 mod notification;
 mod update_check;
 

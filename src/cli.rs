@@ -175,6 +175,15 @@ pub struct RunTimedArgs {
         env
     )]
     pub check_interval: u32,
+    #[arg(
+        env,
+        short,
+        long,
+        help = "Port on which the web server should listen.",
+        default_value = "8080",
+        env
+    )]
+    pub web_port: u16,
 }
 
 #[derive(Parser, Debug, Clone)]
