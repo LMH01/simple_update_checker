@@ -21,7 +21,7 @@
                             <th class="px-5 py-3 cursor-pointer hover:bg-gray-300 transition-colors" onclick="sortTable(0)">Name ↕</th>
                             <th class="px-5 py-3 cursor-pointer hover:bg-gray-300 transition-colors" onclick="sortTable(1)">Current Version ↕</th>
                             <th class="px-5 py-3 cursor-pointer hover:bg-gray-300 transition-colors" onclick="sortTable(2)">Latest Version ↕</th>
-                            <th class="px-5 py-3">Status</th>
+                            <th class="px-5 py-3 cursor-pointer hover:bg-gray-300 transition-colors" onclick="sortTable(3)">Status ↕</th>
                             <th class="px-5 py-3 cursor-pointer hover:bg-gray-300 transition-colors" onclick="sortTable(4)">Last Checked ↕</th>
                             <th class="px-5 py-3">Actions</th>
                         </tr>
@@ -79,7 +79,11 @@
     </div>
 
     <script>
-        let sortDirections = [true, true, true, true, true];
+        let sortDirections = [true, true, true, true, true, true];
+
+        window.addEventListener('DOMContentLoaded', () => {
+            sortTable(0);
+        });
 
         async function updateProgram(name) {
             try {
@@ -119,6 +123,10 @@
                     // Version sort
                     valA = parseVersion(a.cells[columnIndex].querySelector('.version-cell').textContent);
                     valB = parseVersion(b.cells[columnIndex].querySelector('.version-cell').textContent);
+                } else if (columnIndex === 3) {
+                    // Status sort
+                    valA = a.cells[columnIndex].textContent.trim() === 'Update Available' ? 1 : 0;
+                    valB = b.cells[columnIndex].textContent.trim() === 'Update Available' ? 1 : 0;
                 } else if (columnIndex === 4) {
                     // Date sort
                     valA = new Date(a.cells[columnIndex].querySelector('.date-cell').textContent.replace(/-/g, '/'));
