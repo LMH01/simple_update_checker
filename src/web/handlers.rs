@@ -7,7 +7,7 @@ use minijinja::Environment;
 use serde::Serialize;
 use sqlx::SqlitePool;
 use std::sync::Arc;
-use crate::{db::Db, Program};
+use crate::db::Db;
 use tracing::{info, error};
 use sqlx::types::chrono::Utc;
 
@@ -109,7 +109,7 @@ pub async fn post_update_program(
 mod tests {
     use super::*;
     use sqlx::SqlitePool;
-    use crate::db::tests;
+    use crate::{Program, db::tests};
     use crate::Provider;
     use sqlx::types::chrono::{NaiveDate, NaiveDateTime, NaiveTime};
 
