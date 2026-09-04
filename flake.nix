@@ -94,7 +94,7 @@
               pkg-config
               openssl
               sqlx-cli
-              sqlitestudio
+              letos
               tailwindcss
             ];
         };

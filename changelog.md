@@ -4,6 +4,7 @@
 
 - add basic web browser frontend that launches automatically, when the mode `run-timed` is used. Port can be configured using cli
   - web browser frontend currently only supports showing what updates are available and marking a program as updated
+- update flake and rust version
 
 ## v1.7.0
 
