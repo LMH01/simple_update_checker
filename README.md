@@ -164,5 +164,5 @@ If you would like to add more programs stop the docker container with `docker co
 ## TODO
 
 - [ ] Update readme to include information about new browser frontend feature when run-timed is used (e.g. how to configure, what can it do)
-- [ ] Do code review on llm generated code (basically most of this commit)
+- [ ] Do code review on llm generated code (basically most of this pull request)
     - [ ] make sure that all tracing calls are run with tracing:: and not with importing the macro

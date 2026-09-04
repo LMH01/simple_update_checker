@@ -15,14 +15,14 @@
 
         <main>
             <div class="bg-white shadow-md rounded-lg overflow-hidden">
-                <table class="min-w-full leading-normal">
+                <table class="min-w-full leading-normal" id="program-table">
                     <thead>
                         <tr class="bg-gray-200 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                            <th class="px-5 py-3">Name</th>
-                            <th class="px-5 py-3">Current Version</th>
-                            <th class="px-5 py-3">Latest Version</th>
+                            <th class="px-5 py-3 cursor-pointer hover:bg-gray-300 transition-colors" onclick="sortTable(0)">Name ↕</th>
+                            <th class="px-5 py-3 cursor-pointer hover:bg-gray-300 transition-colors" onclick="sortTable(1)">Current Version ↕</th>
+                            <th class="px-5 py-3 cursor-pointer hover:bg-gray-300 transition-colors" onclick="sortTable(2)">Latest Version ↕</th>
                             <th class="px-5 py-3">Status</th>
-                            <th class="px-5 py-3">Last Checked</th>
+                            <th class="px-5 py-3 cursor-pointer hover:bg-gray-300 transition-colors" onclick="sortTable(4)">Last Checked ↕</th>
                             <th class="px-5 py-3">Actions</th>
                         </tr>
                     </thead>
@@ -33,10 +33,10 @@
                                 <p class="text-gray-900 whitespace-no-wrap font-medium">{{ program.name }}</p>
                             </td>
                             <td class="px-5 py-5 text-sm">
-                                <p class="text-gray-900 whitespace-no-wrap">{{ program.current_version }}</p>
+                                <p class="text-gray-900 whitespace-no-wrap version-cell">{{ program.current_version }}</p>
                             </td>
                             <td class="px-5 py-5 text-sm">
-                                <p class="text-gray-900 whitespace-no-wrap">{{ program.latest_version }}</p>
+                                <p class="text-gray-900 whitespace-no-wrap version-cell">{{ program.latest_version }}</p>
                             </td>
                             <td class="px-5 py-5 text-sm">
                                 {% if program.has_update %}
@@ -52,7 +52,7 @@
                                 {% endif %}
                             </td>
                             <td class="px-5 py-5 text-sm">
-                                <p class="text-gray-900 whitespace-no-wrap">{{ program.current_version_last_updated }}</p>
+                                <p class="text-gray-900 whitespace-no-wrap date-cell">{{ program.current_version_last_updated }}</p>
                             </td>
                             <td class="px-5 py-5 text-sm">
                                 {% if program.has_update %}
@@ -79,6 +79,8 @@
     </div>
 
     <script>
+        let sortDirections = [true, true, true, true, true];
+
         async function updateProgram(name) {
             try {
                 const response = await fetch(`/update/${name}`, {
@@ -100,6 +102,43 @@
             } catch (error) {
                 alert('Failed to update program: ' + error.message);
             }
+        }
+
+        function sortTable(columnIndex) {
+            const table = document.getElementById("program-table");
+            const tbody = table.querySelector("tbody");
+            const rows = Array.from(tbody.querySelectorAll("tr"));
+            const ascending = sortDirections[columnIndex];
+
+            sortDirections[columnIndex] = !ascending;
+
+            rows.sort((a, b) => {
+                let valA, valB;
+
+                if (columnIndex === 1 || columnIndex === 2) {
+                    // Version sort
+                    valA = parseVersion(a.cells[columnIndex].querySelector('.version-cell').textContent);
+                    valB = parseVersion(b.cells[columnIndex].querySelector('.version-cell').textContent);
+                } else if (columnIndex === 4) {
+                    // Date sort
+                    valA = new Date(a.cells[columnIndex].querySelector('.date-cell').textContent.replace(/-/g, '/'));
+                    valB = new Date(b.cells[columnIndex].querySelector('.date-cell').textContent.replace(/-/g, '/'));
+                } else {
+                    // Default string sort
+                    valA = a.cells[columnIndex].textContent.trim().toLowerCase();
+                    valB = b.cells[columnIndex].textContent.trim().toLowerCase();
+                }
+
+                if (valA < valB) return ascending ? -1 : 1;
+                if (valA > valB) return ascending ? 1 : -1;
+                return 0;
+            });
+
+            rows.forEach(row => tbody.appendChild(row));
+        }
+
+        function parseVersion(versionStr) {
+            return versionStr.split('.').map(part => part.trim().padStart(5, '0')).join('.');
         }
     </script>
 </body>
