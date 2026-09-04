@@ -17,10 +17,7 @@ async fn main() {
     let mut cli = Cli::parse();
 
     // apply values from config file to cli, when cli does not yet contain values defined in config file
-    match ConfigFile::try_parse() {
-        Ok(Some(config_file)) => cli.apply_config_file(config_file),
-        _ => (),
-    };
+    if let Ok(Some(config_file)) = ConfigFile::try_parse() { cli.apply_config_file(config_file) };
 
     let db_config = DbConfig::try_create(cli.db_args).unwrap();
 

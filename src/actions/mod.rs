@@ -23,14 +23,14 @@ pub async fn remove_program(db_config: DbConfig, remove_program_args: RemoveProg
     {
         println!(
             "Program {} did not exist in database.",
-            &remove_program_args.name
+            remove_program_args.name
         );
         process::exit(0);
     }
     db.remove_program(&remove_program_args.name).await.unwrap();
     println!(
         "Program {} has been removed from the database.",
-        &remove_program_args.name
+        remove_program_args.name
     );
 }
 
@@ -82,7 +82,7 @@ pub async fn update(db_config: DbConfig, update_args: UpdateArgs) {
     if db.get_program(&update_args.name).await.unwrap().is_none() {
         println!(
             "Unable to update current_version: Program {} does not exist in database.",
-            &update_args.name
+            update_args.name
         );
         process::exit(0);
     }
@@ -90,7 +90,7 @@ pub async fn update(db_config: DbConfig, update_args: UpdateArgs) {
     if program.current_version.eq(&program.latest_version) {
         println!(
             "current_version of {} is already equal to latest_version",
-            &program.name
+            program.name
         );
         process::exit(0);
     }
@@ -111,7 +111,7 @@ pub async fn update(db_config: DbConfig, update_args: UpdateArgs) {
     .unwrap();
     println!(
         "current_version of {} has been updated to latest version ({})",
-        &program.name, &program.latest_version
+        program.name, program.latest_version
     );
 }
 

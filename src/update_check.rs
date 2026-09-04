@@ -67,8 +67,8 @@ pub async fn check_for_updates(
             db.update_latest_version(&program.name, &latest_version, Utc::now().naive_utc())
                 .await
                 .unwrap();
-            if let Some(check_args) = &check_args {
-                if check_args.set_current_version {
+            if let Some(check_args) = &check_args
+                && check_args.set_current_version {
                     db.update_current_version(
                         &program.name,
                         &latest_version,
@@ -77,7 +77,6 @@ pub async fn check_for_updates(
                     .await
                     .unwrap();
                 }
-            }
             program.latest_version = latest_version;
             if print_messages {
                 println!(
@@ -88,13 +87,11 @@ pub async fn check_for_updates(
 
             // if update check was performed manually we don't want so sent a notification when timed mode is run
             // so we set notification sent to true
-            if update_check_type == UpdateCheckType::Manual {
-                if let Some(check_args) = &check_args {
-                    if !check_args.allow_notification {
+            if update_check_type == UpdateCheckType::Manual
+                && let Some(check_args) = &check_args
+                    && !check_args.allow_notification {
                         db.set_notification_sent(&program.name, true).await?;
                     }
-                }
-            }
 
             programs_with_available_updates.push(program);
         } else if latest_version != program.current_version {
@@ -108,13 +105,11 @@ pub async fn check_for_updates(
 
             // if update check was performed manually we don't want so sent a notification when timed mode is run
             // so we set notification sent to true
-            if update_check_type == UpdateCheckType::Manual {
-                if let Some(check_args) = &check_args {
-                    if !check_args.allow_notification {
+            if update_check_type == UpdateCheckType::Manual
+                && let Some(check_args) = &check_args
+                    && !check_args.allow_notification {
                         db.set_notification_sent(&program.name, true).await?;
                     }
-                }
-            }
 
             programs_with_available_updates.push(program);
         } else if print_messages {

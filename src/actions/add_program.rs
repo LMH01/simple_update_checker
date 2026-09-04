@@ -22,7 +22,7 @@ pub async fn add_program_github(
     {
         println!(
             "Program named {} already exists in database.",
-            &add_program_args.name
+            add_program_args.name
         );
         process::exit(0);
     }
@@ -38,6 +38,6 @@ pub async fn add_program_github(
     db.insert_program(&program).await.unwrap();
     println!(
         "Program {} successfully added to database!",
-        &add_program_args.name
+        add_program_args.name
     );
 }
